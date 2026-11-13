@@ -154,6 +154,20 @@ Cloudflare ya es conocido: abriría un issue por sitio que no dice nada nuevo.
 - En la página, en lugar de «posible geobloqueo», la tarjeta dice «revisado
   desde México».
 
+### Identidad visual (2026-11-13)
+- Sigue la familia de tocaltepetl (como `camiones-basura-gdl`): cerro en
+  contorno con agua y, dentro del arco, el glifo del proyecto: **tres barras de
+  disponibilidad** (dos verdes, una terracota más baja), las mismas de la página.
+- Colores de la marca = los de la página: tinta `#1D2420`, papel `#EFE9DC`,
+  agua `#3F86A8`, operando `#2F6B4F`, caído `#B5532C`. Wordmark «estado gob» en
+  Bricolage Grotesque 700, convertido a trazos (no depende de la fuente).
+- `assets/brand/` es la fuente y no se publica (incluye copia de los logos de
+  tocaltepetl); se copian a `public/` solo `favicon.svg` (SVG sin scripts ni
+  referencias externas; se adapta al modo oscuro) y `og.png` (1200×630).
+- La página lleva el logo en línea en el título, con los colores de la página
+  (`currentColor`, `--ok`, `--down`, `--deg`), así funciona en claro y oscuro.
+- Open Graph/Twitter apuntan a `https://estado.tocaltepetl.org/`.
+
 ## Solicitudes sin cuenta de GitHub (2026-11-13)
 - Pedir una cuenta de GitHub para proponer una página o describir una falla
   deja fuera a casi toda la ciudadanía. Los formularios de la página mandan a

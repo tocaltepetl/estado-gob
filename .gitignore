@@ -2,3 +2,5 @@ node_modules/
 .wrangler/
 .dev.vars
 *.png
+!assets/brand/*.png
+!public/*.png

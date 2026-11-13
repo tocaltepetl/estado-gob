@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/estado-gob-horizontal-claro.svg">
+  <img src="assets/brand/estado-gob-horizontal.svg" alt="estado gob" width="300">
+</picture>
+
 # Estado de páginas de gobierno
 
 > **English:** unofficial status page for Mexican government websites (starting
@@ -5,7 +10,7 @@
 > Contributions welcome — issues and PRs in English are fine.
 
 Página ciudadana, **no oficial**, con el estado actual e histórico de páginas y
-trámites en línea de gobierno en Jalisco. Revisa cada página cada 5 minutos.
+trámites en línea de gobierno en México. Revisa cada página cada 5 minutos.
 
 ## Qué muestra
 - Estado actual de cada página: operando, degradado, caído, o «en revisión»
