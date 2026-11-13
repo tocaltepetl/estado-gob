@@ -1,0 +1,16 @@
+# Revisor de estado-gob desde México (origen `mx`). Ver docs/decisiones.md.
+# Instalar (usuario): copia ambos archivos a ~/.config/systemd/user/, crea
+# ~/.config/estado-gob/revisor.env con TOKEN_REVISOR=... y ajusta la ruta del repo:
+#   systemctl --user daemon-reload && systemctl --user enable --now estado-gob-revisor.timer
+# Para que corra sin sesión abierta: loginctl enable-linger $USER
+[Unit]
+Description=estado-gob: revisión de sitios desde México
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/estado-gob/revisor.env
+WorkingDirectory=%h/Projects/tocaltepetl/estado-gob
+ExecStart=/usr/bin/env node scripts/revisar.mjs --enviar https://estado.tocaltepetl.org
+TimeoutStartSec=90
