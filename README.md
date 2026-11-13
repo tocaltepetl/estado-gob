@@ -10,7 +10,7 @@
 > Contributions welcome — issues and PRs in English are fine.
 
 Página ciudadana, **no oficial**, con el estado actual e histórico de páginas y
-trámites en línea de gobierno en Jalisco. Revisa cada página cada 5 minutos.
+trámites en línea de gobierno en México. Revisa cada página cada 5 minutos.
 
 ## Qué muestra
 - Estado actual de cada página: operando, degradado, caído, o «en revisión»
