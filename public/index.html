@@ -18,6 +18,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Logo de estado gob: barras de disponibilidad dentro de un cerro con agua">
 <meta name="twitter:card" content="summary_large_image">
+<script>try{const t=localStorage.getItem("estado-gob:tema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch{}</script>
 <style>
 :root{
   --bg:#EFE9DC;--card:#FBF8F1;--fg:#1D2420;--muted:#5d665f;--line:#ddd5c4;
@@ -33,6 +34,13 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:860px;margin:0 auto;padding:24px 16px 64px}
+header{position:relative;padding-right:48px}
+.tema{position:absolute;top:0;right:0;width:38px;height:38px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;display:grid;place-items:center}
+.tema:hover{border-color:var(--muted)}
+.tema:focus-visible{outline:2px solid var(--deg);outline-offset:2px}
+.tema .sol{display:none}
+:root[data-theme="dark"] .tema .sol{display:block}:root[data-theme="dark"] .tema .luna{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tema .sol{display:block}:root:not([data-theme="light"]) .tema .luna{display:none}}
 header h1{font-size:1.6rem;margin:0 0 4px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
 header h1 svg{width:44px;height:44px;flex:none;margin:-6px 0 -6px -4px}
 header p{margin:0;color:var(--muted)}
@@ -129,6 +137,10 @@ footer a{color:inherit}
 <body>
 <main>
 <header>
+  <button class="tema" id="tema" type="button" aria-label="Cambiar entre modo claro y oscuro" title="Cambiar entre modo claro y oscuro">
+    <svg class="luna" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    <svg class="sol" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg>
+  </button>
   <h1><svg viewBox="0 0 100 100" aria-hidden="true"><g transform="translate(9 20) scale(.82)"><path d="M20 72 C20 42 31 10 50 10 C69 10 80 42 80 72" fill="none" stroke="currentColor" stroke-width="10.5" stroke-linecap="round"/><g fill="none" stroke="var(--deg)" stroke-linecap="round"><path d="M12 80 q9.5 -6 19 0 t19 0 t19 0 t19 0" stroke-width="5"/><path d="M22 91 q7 -5 14 0 t14 0 t14 0 t14 0" stroke-width="4"/></g></g><g transform="translate(37.5 44)"><rect width="6" height="24" rx="2" fill="var(--ok)"/><rect x="9.5" width="6" height="24" rx="2" fill="var(--ok)"/><rect x="19" y="9" width="6" height="15" rx="2" fill="var(--down)"/></g></svg>Estado de páginas de gobierno</h1>
   <p>¿Funciona el trámite en línea? Revisamos cada 5 minutos páginas de gobierno en México.</p>
   <p class="aviso">No oficial. Proyecto ciudadano de <a href="https://github.com/tocaltepetl">tocaltepetl</a>.</p>
@@ -407,6 +419,14 @@ function panelFiltros(abrir) {
 }
 $("#facetas").addEventListener("click", () => panelFiltros($("#facetas-cuerpo").hidden));
 if (ACTIVAS.size) panelFiltros(true);
+// Tema: sigue al sistema hasta que la persona elige; la elección se recuerda en este navegador.
+$("#tema").addEventListener("click", () => {
+  const actual = document.documentElement.dataset.theme ||
+    (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const nuevo = actual === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = nuevo;
+  guardar("estado-gob:tema", nuevo);
+});
 $("#buscar").addEventListener("input", pintar);
 document.querySelectorAll(".filtros button[data-f]").forEach((b) => b.addEventListener("click", () => {
   FILTRO = b.dataset.f;
