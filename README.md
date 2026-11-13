@@ -56,5 +56,23 @@ Abre un issue con la plantilla **Nuevo sitio**, o un PR que edite
 `config/sitios.json`. Si la página necesita iniciar sesión, se revisa solo la
 parte pública y se marca como «monitoreo parcial».
 
+## Canales de contacto
+Cada sitio puede listar en `config/sitios.json` los canales oficiales para
+avisar de fallas (`contacto`). La página los muestra como «¿A quién avisar?»
+cuando un sitio está caído o degradado:
+
+```json
+"contacto": [
+  {"tipo": "whatsapp", "valor": "+52 33 5164 4440", "etiqueta": "SIAPA Bot", "nota": "Da folio"},
+  {"tipo": "x", "valor": "siapagdl"},
+  {"tipo": "correo", "valor": "soporte@ejemplo.gob.mx", "especifico": true}
+]
+```
+
+`tipo`: `x`, `facebook`, `instagram`, `tiktok`, `youtube`, `whatsapp` (con
+lada de país), `telefono`, `correo`, `web` u `otro` (URL https). Marca
+`especifico: true` solo si el canal atiende fallas de la página; si todos son
+generales, la página lo aclara. `npm test` valida el catálogo.
+
 ## Licencia
 [MIT](LICENSE).

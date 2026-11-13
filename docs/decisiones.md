@@ -130,3 +130,16 @@ variación). Mientras el equipo esté apagado, solo queda el origen `cf`.
 - **SIAPA bloquea las IPs de Cloudflare** (403 en los tres sitios, incluido el
   portal que desde México funciona). La regla funcionó: se publica «revisión
   bloqueada», no «caído». Para SIAPA el revisor en México es indispensable.
+
+### Canales de contacto por sitio (2026-11-13)
+Investigación: ninguna de las dependencias monitoreadas publica un canal
+específico para fallas de sus páginas (ni página de estado). SIAPA tiene
+SIAPA Bot (WhatsApp, con folio), 073 y @siapagdl; Guadalajara, conmutador y
+correo general; RPPC y el portal de Jalisco, nada encontrado.
+- Campo `contacto` con tipos cerrados (`src/contacto.js`); el Worker arma el
+  enlace y la página solo lo muestra. Valores inválidos no se publican (p. ej.
+  `javascript:` o `http:`), y los tests validan el catálogo.
+- `especifico` distingue un canal de soporte de la página de uno de atención
+  general; si todos son generales, la página lo dice para no prometer de más.
+- Se muestra en sitios caídos o degradados y dentro de «¿No te funciona?».
+  Sin canal publicado, la página lo dice e invita a proponer uno.
