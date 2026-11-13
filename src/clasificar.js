@@ -1,0 +1,110 @@
+// Clasificación de fallas. Código puro: lo usan el Worker (cron) y el
+// revisor local en Node (scripts/revisar.mjs), y lo prueban los tests.
+//
+// Entrada: lo que se observó en una revisión (error de red o respuesta HTTP).
+// Salida: {capa, tipo, atribucion, detalle}.
+//   atribucion = 'sitio'   → falla del sitio; se puede publicar como incidente.
+//                'nosotros' → probablemente cambió el sitio y la revisión
+//                             (marcador/selector) quedó obsoleta; no se publica.
+//                'bloqueo'  → el sitio nos retó o bloqueó; no se publica.
+//                null       → todo bien.
+// Ver docs/decisiones.md («Clasificación de fallas: sitio vs. scraper»).
+
+export const CAPAS = ["dns", "red", "tls", "http", "intermediario", "contenido", "navegador", "dependencia"];
+
+// tipo → [capa, atribución, texto para la ciudadanía]
+export const TIPOS = {
+  ok:                   [null, null, "Funciona"],
+  dns_nxdomain:         ["dns", "sitio", "El dominio no existe o no resuelve"],
+  dns_timeout:          ["dns", "sitio", "El DNS no respondió"],
+  tcp_timeout:          ["red", "sitio", "El servidor no responde"],
+  tcp_refused:          ["red", "sitio", "El servidor rechaza la conexión"],
+  tcp_reset:            ["red", "sitio", "El servidor corta la conexión"],
+  cierre_sin_respuesta: ["red", "sitio", "El servidor cierra la conexión sin responder"],
+  red_error:            ["red", "sitio", "Error de red al conectar"],
+  tls_eof:              ["tls", "sitio", "El servidor corta la conexión segura antes de responder"],
+  tls_cert_expirado:    ["tls", "sitio", "El certificado de seguridad venció"],
+  tls_cert_nombre:      ["tls", "sitio", "El certificado no corresponde al dominio"],
+  tls_cert_invalido:    ["tls", "sitio", "Certificado de seguridad inválido"],
+  tls_error:            ["tls", "sitio", "Error en la conexión segura"],
+  timeout:              ["red", "sitio", "La página tardó demasiado en responder"],
+  http_5xx:             ["http", "sitio", "Error del servidor"],
+  http_404:             ["http", "nosotros", "La dirección ya no existe (¿se movió?)"],
+  http_403:             ["http", "bloqueo", "Acceso denegado a la revisión automática"],
+  http_4xx:             ["http", "nosotros", "Respuesta inesperada del servidor"],
+  redirect_loop:        ["http", "sitio", "Redirecciones en bucle"],
+  waf_upstream:         ["intermediario", "sitio", "El firewall responde, pero el servidor de atrás no"],
+  cdn_error:            ["intermediario", "sitio", "La red de distribución no alcanza al servidor"],
+  waf_reto:             ["intermediario", "bloqueo", "El sitio pidió verificación (captcha) a la revisión automática"],
+  pagina_mantenimiento: ["contenido", "sitio", "Aviso de mantenimiento"],
+  pagina_error_app:     ["contenido", "sitio", "La aplicación muestra una página de error"],
+  falta_marcador:       ["contenido", "nosotros", "No se encontró el contenido esperado"],
+  iframe_vacio:         ["navegador", "sitio", "Un componente incrustado no carga"],
+  selector_ausente:     ["navegador", "nosotros", "No se encontró el elemento esperado"],
+  login_rechazado:      ["navegador", "nosotros", "No se pudo iniciar sesión con la cuenta de prueba"],
+  dependencia_caida:    ["dependencia", "sitio", "Carga, pero un servicio del que depende está caído"],
+};
+
+const resultado = (tipo, detalle = null) => {
+  const [capa, atribucion] = TIPOS[tipo];
+  return {tipo, capa, atribucion, detalle};
+};
+
+// Errores de red en Node (`err.code`, también en `err.cause.code` con fetch)
+// y en Workers (solo mensaje, menos preciso).
+export function clasificarErrorRed(err) {
+  const code = err?.code || err?.cause?.code || "";
+  // fetch envuelve el error real: «fetch failed» + cause {code, message}.
+  const msg = [err?.message, err?.cause?.message].filter(Boolean).join(": ") || String(err || "");
+  const t = `${code} ${msg}`;
+  if (/ENOTFOUND|EAI_NONAME|NXDOMAIN/.test(t)) return resultado("dns_nxdomain", code || msg);
+  if (/EAI_AGAIN/.test(t)) return resultado("dns_timeout", code);
+  if (/CERT_HAS_EXPIRED|certificate has expired/i.test(t)) return resultado("tls_cert_expirado", code || msg);
+  if (/ERR_TLS_CERT_ALTNAME_INVALID|altname|hostname.*mismatch/i.test(t)) return resultado("tls_cert_nombre", code || msg);
+  if (/CERT|SELF_SIGNED|UNABLE_TO_VERIFY/i.test(code)) return resultado("tls_cert_invalido", code);
+  // Conexión cerrada justo tras (o durante) el saludo TLS: «unexpected eof» / ECONNRESET con socket TLS.
+  if (/unexpected eof|before secure TLS connection|socket disconnected before secure/i.test(t)) return resultado("tls_eof", msg);
+  if (/ECONNREFUSED/.test(t)) return resultado("tcp_refused", code);
+  if (/UND_ERR_SOCKET|other side closed|socket hang up/i.test(t)) return resultado("cierre_sin_respuesta", code || msg);
+  if (/ECONNRESET|connection lost|connection reset/i.test(t)) return resultado("tcp_reset", code || msg);
+  if (/ETIMEDOUT|UND_ERR_CONNECT_TIMEOUT|ConnectTimeout|connect timeout/i.test(t)) return resultado("tcp_timeout", code || msg);
+  if (/redirect count exceeded|too many redirects/i.test(t)) return resultado("redirect_loop", msg);
+  if (/TimeoutError|aborted|timed out|timeout/i.test(t)) return resultado("timeout", msg);
+  if (/SSL|TLS/i.test(t)) return resultado("tls_error", msg);
+  return resultado("red_error", (code ? code + " " : "") + msg.slice(0, 200));
+}
+
+const tituloDe = (html) => (html.match(/<title[^>]*>([^<]*)/i)?.[1] || "").trim().replace(/\s+/g, " ");
+
+function coincideFirma(f, {titulo, cuerpo, encabezados}) {
+  if (f.titulo && !new RegExp(f.titulo, "i").test(titulo)) return false;
+  if (f.cuerpo && !new RegExp(f.cuerpo, "i").test(cuerpo)) return false;
+  for (const [k, v] of Object.entries(f.encabezados || {})) {
+    if (!(encabezados[k.toLowerCase()] || "").toLowerCase().includes(v.toLowerCase())) return false;
+  }
+  return Boolean(f.titulo || f.cuerpo || f.encabezados);
+}
+
+// Respuesta HTTP recibida. `sitio` es la entrada de config/sitios.json.
+// `encabezados`: objeto con llaves en minúsculas.
+export function clasificarRespuesta({status, encabezados = {}, cuerpo = ""}, sitio, firmas) {
+  const titulo = tituloDe(cuerpo);
+  // Quita los estilos y datos incrustados (fuentes en base64) antes de buscar texto.
+  const texto = cuerpo.replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/data:[^"')\s]+/g, "");
+  const firma = firmas.find((f) => coincideFirma(f, {titulo, cuerpo: texto, encabezados}));
+  if (firma) return {...resultado(firma.tipo, firma.descripcion), firma: firma.id, titulo};
+
+  if (status >= 500) return {...resultado("http_5xx", `HTTP ${status}`), titulo};
+  if (status === 404 || status === 410) return {...resultado("http_404", `HTTP ${status}`), titulo};
+  if (status === 403 || status === 429) return {...resultado("http_403", `HTTP ${status}`), titulo};
+  if (status >= 400) return {...resultado("http_4xx", `HTTP ${status}`), titulo};
+
+  const esperado = sitio?.espera || {};
+  if (esperado.status && status !== esperado.status) return {...resultado("http_4xx", `HTTP ${status}, se esperaba ${esperado.status}`), titulo};
+  if (esperado.contiene && !new RegExp(esperado.contiene, "i").test(texto)) {
+    return {...resultado("falta_marcador", `Sin «${esperado.contiene}»`), titulo};
+  }
+  return {...resultado("ok"), titulo};
+}
+
+export const describir = (tipo) => TIPOS[tipo]?.[2] || tipo;

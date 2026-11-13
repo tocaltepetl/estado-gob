@@ -1,0 +1,58 @@
+{
+  "_nota": "Firmas para reconocer intermediarios (WAF, CDN) y páginas de error. Se evalúan en orden; gana la primera que coincide. `cuerpo` y `titulo` son expresiones regulares sin distinguir mayúsculas; `encabezados` exige que cada encabezado contenga el texto. Ver docs/decisiones.md («Clasificación de fallas»).",
+  "firmas": [
+    {
+      "id": "checkpoint-upstream",
+      "tipo": "waf_upstream",
+      "descripcion": "Check Point CloudGuard WAF: el firewall responde pero el servidor de atrás no",
+      "titulo": "Check Point WAF",
+      "cuerpo": "invalid response from the host server|Bad Gateway"
+    },
+    {
+      "id": "checkpoint-reto",
+      "tipo": "waf_reto",
+      "descripcion": "Check Point WAF bloqueó o retó la petición",
+      "titulo": "Check Point WAF",
+      "cuerpo": "request (was )?(blocked|rejected)|captcha|verify you are human"
+    },
+    {
+      "id": "cloudflare-reto",
+      "tipo": "waf_reto",
+      "descripcion": "Reto de Cloudflare (Just a moment / Turnstile)",
+      "titulo": "Just a moment|Attention Required",
+      "encabezados": {"server": "cloudflare"}
+    },
+    {
+      "id": "cloudflare-origen",
+      "tipo": "cdn_error",
+      "descripcion": "Cloudflare no alcanza el servidor de origen (52x)",
+      "cuerpo": "Error code 52[0-9]|origin web server|Web server is down",
+      "encabezados": {"server": "cloudflare"}
+    },
+    {
+      "id": "cloudfront-error",
+      "tipo": "cdn_error",
+      "descripcion": "CloudFront no obtuvo respuesta del origen",
+      "cuerpo": "The request could not be satisfied|ERROR: The request could not be satisfied"
+    },
+    {
+      "id": "aspnet-error",
+      "tipo": "pagina_error_app",
+      "descripcion": "Página de error de ASP.NET",
+      "cuerpo": "Server Error in '/.*' Application|Runtime Error"
+    },
+    {
+      "id": "php-error",
+      "tipo": "pagina_error_app",
+      "descripcion": "Error fatal de PHP o de base de datos visible en la página",
+      "cuerpo": "Fatal error</b>:|Uncaught Exception|SQLSTATE\\[|mysqli?_connect|Error establishing a database connection"
+    },
+    {
+      "id": "mantenimiento",
+      "tipo": "pagina_mantenimiento",
+      "descripcion": "Aviso de mantenimiento",
+      "titulo": "mantenimiento|maintenance",
+      "cuerpo": "en mantenimiento|under maintenance|fuera de servicio temporalmente"
+    }
+  ]
+}
