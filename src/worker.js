@@ -2,6 +2,8 @@
 // - scheduled (cron, cada 5 min): revisa todos los sitios `http` y registra.
 // - POST /api/resultado: recibe revisiones de otros orígenes (p. ej. el
 //   revisor en México, scripts/revisar.mjs). Requiere `Authorization: Bearer`.
+// - POST /api/solicitud: nuevo sitio o reporte con detalle; abre un issue
+//   sin que la persona necesite cuenta de GitHub (src/solicitudes.js).
 // - GET /api/estado: estado público de cada sitio + barras de 90 días.
 // - GET /api/historial?sitio=ID: últimas revisiones y transiciones de un sitio.
 // Todo lo demás lo sirve `public/` sin pasar por aquí (run_worker_first).
@@ -14,6 +16,7 @@ import {TIPOS, describir} from "./clasificar.js";
 import {abrirIssue, debeAvisar} from "./avisos.js";
 import {recibirReporte, agregados} from "./reportes.js";
 import {contactoPublico} from "./contacto.js";
+import {recibirSolicitud} from "./solicitudes.js";
 
 const SITIOS = sitiosCfg.sitios;
 const FIRMAS = firmasCfg.firmas;
@@ -35,6 +38,7 @@ export default {
     try {
       if (url.pathname === "/api/resultado") return await recibir(req, env);
       if (url.pathname === "/api/reporte") return await recibirReporte(req, env, url, SITIOS);
+      if (url.pathname === "/api/solicitud") return await recibirSolicitud(req, env, url, SITIOS);
       if (url.pathname === "/api/estado") return await estado(req, env, ctx, url);
       if (url.pathname === "/api/historial") return await historial(env, url);
       if (url.pathname === "/api/revisar" && env.DEV === "1") {   // solo local: dispara el cron a mano

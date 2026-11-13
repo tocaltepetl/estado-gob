@@ -5,7 +5,7 @@
 
 import {describir} from "./clasificar.js";
 
-const REPO = "tocaltepetl/estado-gob";
+export const REPO = "tocaltepetl/estado-gob";
 
 const TITULOS = {
   rediseno_probable: "Revisión obsoleta (probable rediseño)",
@@ -49,8 +49,8 @@ export async function abrirIssue(env, {sitio, r, previo, transicion}) {
   return issue.number;
 }
 
-async function gh(env, ruta, init = {}) {
-  const res = await fetch("https://api.github.com" + ruta, {
+export async function gh(env, ruta, init = {}, fetchFn = fetch) {
+  const res = await fetchFn("https://api.github.com" + ruta, {
     ...init,
     headers: {
       "authorization": `Bearer ${env.GITHUB_TOKEN}`,
