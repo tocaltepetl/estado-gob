@@ -18,8 +18,8 @@
 		{
 			"binding": "DB",
 			"database_name": "estado-gob",
-			// Pendiente: `wrangler d1 create estado-gob` y poner aquí el id (etapa 2).
-			"database_id": "00000000-0000-0000-0000-000000000000",
+			// Creada con `wrangler d1 create estado-gob` (2026-11-13).
+			"database_id": "8490480b-c185-4c42-8670-2cc23c733331",
 			"migrations_dir": "migrations"
 		}
 	],
