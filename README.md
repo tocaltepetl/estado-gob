@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/estado-gob-horizontal-claro.svg">
+  <img src="assets/brand/estado-gob-horizontal.svg" alt="estado gob" width="300">
+</picture>
+
 # Estado de páginas de gobierno
 
 > **English:** unofficial status page for Mexican government websites (starting
