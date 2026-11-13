@@ -1,0 +1,14 @@
+{
+  "name": "estado-gob",
+  "private": true,
+  "type": "module",
+  "description": "Estado actual e histórico de páginas de gobierno, para la ciudadanía.",
+  "license": "MIT",
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "revisar": "node scripts/revisar.mjs",
+    "dev": "npx wrangler@4 dev --test-scheduled",
+    "migrar:local": "npx wrangler@4 d1 migrations apply estado-gob --local"
+  }
+}
