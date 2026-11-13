@@ -1,0 +1,52 @@
+name: Reportar una falla
+description: Una página no te funciona (aunque aquí aparezca bien).
+title: "Falla: "
+labels: ["reporte"]
+body:
+  - type: dropdown
+    id: sitio
+    attributes:
+      label: Página
+      description: Si no está en la lista, elige «Otra» y ponla abajo.
+      options:
+        - Portal del Gobierno de Jalisco
+        - Registro Público de la Propiedad y de Comercio
+        - Portal del Ayuntamiento de Guadalajara
+        - "Catastro de Guadalajara: trámites"
+        - Portal de SIAPA
+        - "SIAPA: recibo y servicios en línea"
+        - "SIAPA: registro y constancia de no adeudo"
+        - Otra
+    validations:
+      required: true
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: ¿Qué pasó?
+      options:
+        - No carga / se queda en blanco
+        - Un formulario o parte de la página no aparece
+        - Error al iniciar sesión
+        - Error al pagar o al descargar un documento
+        - Muy lenta
+        - Otro
+    validations:
+      required: true
+  - type: input
+    id: cuando
+    attributes:
+      label: ¿Cuándo? (fecha y hora aproximada)
+    validations:
+      required: true
+  - type: textarea
+    id: detalle
+    attributes:
+      label: Detalle
+      description: Qué intentabas hacer y qué viste. Puedes adjuntar una captura (tapa tus datos).
+  - type: checkboxes
+    id: datos
+    attributes:
+      label: Antes de enviar
+      options:
+        - label: No incluí datos personales, CURP, RFC, folios ni contraseñas (tampoco en capturas).
+          required: true

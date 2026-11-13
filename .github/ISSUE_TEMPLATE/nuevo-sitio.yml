@@ -1,0 +1,48 @@
+name: Nuevo sitio
+description: Propón una página o trámite de gobierno para revisarlo.
+title: "Nuevo sitio: "
+labels: ["nuevo-sitio"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Dirección (URL)
+      placeholder: https://...gob.mx/...
+    validations:
+      required: true
+  - type: input
+    id: dependencia
+    attributes:
+      label: Dependencia u orden de gobierno
+      placeholder: p. ej. SIAPA, Gobierno de Jalisco, Ayuntamiento de Zapopan
+    validations:
+      required: true
+  - type: textarea
+    id: para-que
+    attributes:
+      label: ¿Para qué se usa?
+      description: El trámite o servicio que la gente hace ahí.
+    validations:
+      required: true
+  - type: textarea
+    id: sana
+    attributes:
+      label: ¿Cómo se ve cuando funciona?
+      description: Un texto o elemento que siempre aparece cuando la página está bien (lo usamos para detectar fallas).
+  - type: dropdown
+    id: login
+    attributes:
+      label: ¿Requiere iniciar sesión?
+      options:
+        - "No"
+        - Sí, para la parte importante
+        - No sé
+    validations:
+      required: true
+  - type: checkboxes
+    id: datos
+    attributes:
+      label: Antes de enviar
+      options:
+        - label: No incluí datos personales, contraseñas ni folios.
+          required: true

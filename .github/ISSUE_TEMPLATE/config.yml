@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ver el estado actual
+    url: https://estado.tocaltepetl.org
+    about: Antes de reportar, revisa si la falla ya aparece.
