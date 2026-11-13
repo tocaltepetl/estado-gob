@@ -12,6 +12,7 @@ import {revisar} from "./revisar.js";
 import {siguiente, combinar} from "./transiciones.js";
 import {TIPOS, describir} from "./clasificar.js";
 import {abrirIssue} from "./avisos.js";
+import {recibirReporte, agregados} from "./reportes.js";
 
 const SITIOS = sitiosCfg.sitios;
 const FIRMAS = firmasCfg.firmas;
@@ -32,6 +33,7 @@ export default {
     const url = new URL(req.url);
     try {
       if (url.pathname === "/api/resultado") return await recibir(req, env);
+      if (url.pathname === "/api/reporte") return await recibirReporte(req, env, url, SITIOS);
       if (url.pathname === "/api/estado") return await estado(req, env, ctx, url);
       if (url.pathname === "/api/historial") return await historial(env, url);
       if (url.pathname === "/api/revisar" && env.DEV === "1") {   // solo local: dispara el cron a mano
@@ -109,7 +111,7 @@ async function estado(req, env, ctx, url) {
 
   const ahora = Date.now();
   const desde = ahora - DIAS_BARRA * DIA_MS;
-  const [filas, dias, ult] = await Promise.all([
+  const [filas, dias, ult, rep] = await Promise.all([
     env.DB.prepare("SELECT * FROM estado").all(),
     // Por día (UTC-6, hora de Jalisco): revisiones totales y con falla atribuida al sitio.
     env.DB.prepare(`SELECT sitio, CAST((ts - 21600000) / 86400000 AS INTEGER) AS dia,
@@ -117,6 +119,7 @@ async function estado(req, env, ctx, url) {
                     FROM revisiones WHERE ts >= ? GROUP BY sitio, dia`).bind(desde).all(),
     env.DB.prepare(`SELECT sitio, ts, de, a, interpretacion FROM transiciones
                     WHERE interpretacion IN ('falla_sitio','recuperado','cambio_falla') ORDER BY ts DESC LIMIT 30`).all(),
+    agregados(env, ahora),
   ]);
 
   const porSitio = {};
@@ -139,9 +142,11 @@ async function estado(req, env, ctx, url) {
       publico, tipo: tipo ?? null, motivo: tipo && tipo !== "ok" ? describir(tipo) : null, detalle: st.detalle || null,
       desde: st.desde || null, ts: st.ts || null, nota: st.nota || null,
       disponibilidad: total ? 1 - fallas / total : null, barras,
+      reportes: rep[s.id] || {recientes: 0, dia: 0, tipos: {}},
     };
   });
-  const res = json({generado: ahora, sitios, incidentes: ult.results}, 200, {"cache-control": `public, max-age=${CACHE_S}`});
+  const res = json({generado: ahora, sitios, incidentes: ult.results}, 200,
+    {"cache-control": `public, max-age=${CACHE_S}`, "access-control-allow-origin": "*"});
   ctx.waitUntil(cache.put(llave, res.clone()));
   return res;
 }

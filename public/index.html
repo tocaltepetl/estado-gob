@@ -54,6 +54,15 @@ summary{cursor:pointer;color:var(--muted)}
 footer{margin-top:40px;font-size:.8rem;color:var(--muted)}
 footer a{color:inherit}
 .error{color:var(--down)}
+.reportes{font-size:.85rem;margin:6px 0 0 22px;color:var(--down);font-weight:600}
+.rep-btn{font:inherit;font-size:.85rem;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0;margin-left:auto}
+.rep-form{margin-top:10px;padding:10px 12px;border-radius:8px;border:1px dashed var(--line)}
+.rep-form p{margin:0 0 8px;font-size:.88rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:99px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.chips button:hover{border-color:var(--down)}
+.rep-form small{display:block;margin-top:8px;color:var(--muted)}
+.otros{display:flex;gap:12px;align-items:center;margin-top:8px}
 </style>
 </head>
 <body>
@@ -71,7 +80,7 @@ footer a{color:inherit}
   <a href="https://github.com/tocaltepetl/estado-gob/issues/new?template=nuevo-sitio.yml">
     <b>Solicitar una página</b><span>¿Falta un trámite o portal? Propónlo (requiere cuenta de GitHub).</span></a>
   <a href="https://github.com/tocaltepetl/estado-gob/issues/new?template=reportar-falla.yml">
-    <b>Reportar una falla</b><span>¿A ti no te funciona algo que aquí aparece bien? Cuéntanos.</span></a>
+    <b>Reportar con detalle</b><span>Para reportar rápido usa «¿No te funciona?» en cada página. Aquí puedes describir el problema (requiere cuenta de GitHub).</span></a>
 </div>
 
 <dl class="leyenda">
@@ -87,6 +96,8 @@ footer a{color:inherit}
   Los datos están disponibles en <a href="/api/estado">/api/estado</a>. Código en
   <a href="https://github.com/tocaltepetl/estado-gob">GitHub</a> (MIT).
   La revisión automática se identifica como <code>estado-gob</code> y hace una petición cada 5 minutos por página.
+  Los reportes son anónimos: solo se guarda la página, el tipo de falla y la hora; se muestran a partir de 3.
+  Versión <a class="ver" href="https://github.com/tocaltepetl/estado-gob/releases" rel="noopener">dev</a>.
 </footer>
 </main>
 
@@ -96,6 +107,9 @@ const ETIQUETA = {operando:"Operando", degradado:"Degradado", caido:"Caído", ve
 const INTERP = {falla_sitio:"Falla confirmada", cambio_falla:"Cambió el tipo de falla", posible_falla:"Posible falla",
   recuperado:"Se recuperó", rediseno_probable:"La página cambió (rediseño probable)", revision_obsoleta:"Nuestra revisión quedó obsoleta",
   bloqueo:"Bloqueó la revisión automática", cambio_estructura:"Cambió la estructura de la página"};
+const TIPOS_REPORTE = [["no_carga","No carga o se queda en blanco"],["parte_no_aparece","Un formulario o parte no aparece"],
+  ["login","Error al iniciar sesión"],["pago_descarga","Error al pagar o descargar"],["lenta","Muy lenta"],["otro","Otro"]];
+const ESPERA_REPORTE_MS = 3600000;
 const DIAS = 90, DIA_MS = 86400000, TZ_MS = 21600000;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -136,9 +150,12 @@ function tarjeta(s) {
       <span class="nombre"><a href="${esc(s.url)}" rel="noopener">${esc(s.nombre)}</a> ${etqs}</span>
       <span class="estado">${ETIQUETA[s.publico] || s.publico}</span></div>
     ${motivo ? `<div class="motivo">${motivo}</div>` : ""}
+    ${s.reportes?.recientes ? `<div class="reportes">${s.reportes.recientes} personas reportaron fallas en las últimas 2 h</div>` : ""}
     <div class="barras" aria-label="Últimos ${DIAS} días">${barras(s)}</div>
     <div class="pie"><span>hace ${DIAS} días</span><span>${disp} disponible</span><span>hoy</span></div>
-    <details><summary>Historial</summary><ul class="hist">Cargando…</ul></details>
+    <div class="otros"><details><summary>Historial</summary><ul class="hist">Cargando…</ul></details>
+      <button class="rep-btn" type="button">¿No te funciona?</button></div>
+    <div class="rep-form" hidden></div>
   </article>`;
 }
 
@@ -165,6 +182,32 @@ async function historial(det) {
   } catch { ul.innerHTML = `<li class="error">No se pudo cargar.</li>`; }
 }
 
+const leer = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+
+function abrirReporte(art) {
+  const f = art.querySelector(".rep-form"), id = art.dataset.id;
+  if (!f.hidden) { f.hidden = true; return; }
+  const previo = Number(leer("estado-gob:reporte:" + id)) || 0;
+  f.hidden = false;
+  if (Date.now() - previo < ESPERA_REPORTE_MS) { f.innerHTML = "<p>Gracias, ya registramos tu reporte de esta página.</p>"; return; }
+  f.innerHTML = `<p>¿Qué pasa? Tu reporte es anónimo.</p><div class="chips">${TIPOS_REPORTE.map(([, t], k) =>
+    `<button type="button" data-k="${k}">${t}</button>`).join("")}</div>
+    <small>Solo guardamos la página, el tipo de falla y la hora. Para dar detalles, usa «Reportar con detalle» abajo.</small>`;
+  f.querySelectorAll("button").forEach((b) => b.addEventListener("click", async () => {
+    f.querySelectorAll("button").forEach((x) => x.disabled = true);
+    try {
+      const r = await fetch("/api/reporte", {method: "POST", headers: {"content-type": "application/json"},
+        body: JSON.stringify({sitio: id, k: Number(b.dataset.k)})});
+      if (!r.ok) throw 0;
+      guardar("estado-gob:reporte:" + id, String(Date.now()));
+      f.innerHTML = "<p>Gracias. Si otras personas reportan lo mismo, aparecerá en esta página.</p>";
+    } catch {
+      f.innerHTML = `<p class="error">No se pudo enviar. Intenta de nuevo en un momento.</p>`;
+    }
+  }));
+}
+
 async function cargar() {
   try {
     const d = await (await fetch("/api/estado")).json();
@@ -174,12 +217,15 @@ async function cargar() {
     $("#lista").innerHTML = Object.entries(grupos).map(([g, ss]) =>
       `<section class="grupo"><h2>${esc(g)}</h2>${ss.map(tarjeta).join("")}</section>`).join("");
     document.querySelectorAll("details").forEach((det) => det.addEventListener("toggle", () => det.open && historial(det)));
+    document.querySelectorAll(".rep-btn").forEach((b) => b.addEventListener("click", () => abrirReporte(b.closest(".sitio"))));
   } catch {
     $("#resumen").innerHTML = `<span class="punto"></span><span class="error">No se pudo cargar el estado. Intenta de nuevo en un momento.</span>`;
   }
 }
 cargar();
-setInterval(() => { if (!document.hidden && !document.querySelector("details[open]")) cargar(); }, 120000);
+setInterval(() => {
+  if (!document.hidden && !document.querySelector("details[open]") && !document.querySelector(".rep-form:not([hidden])")) cargar();
+}, 120000);
 </script>
 </body>
 </html>
