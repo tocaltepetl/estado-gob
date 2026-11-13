@@ -108,7 +108,7 @@
       "espera": {"status": 200, "contiene": "contrase(ñ|&ntilde;)a"},
       "login": true,
       "contacto": [
-        {"tipo": "telefono", "valor": "55 627 22 728", "etiqueta": "MarcaSAT"},
+        {"tipo": "telefono", "valor": "55 627 22 728", "etiqueta": "MarcaSAT", "nota": "Lunes a viernes, 9 a 18 h"},
         {"tipo": "x", "valor": "SATMX"}
       ]
     }
