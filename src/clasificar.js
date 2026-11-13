@@ -74,6 +74,16 @@ export function clasificarErrorRed(err) {
   return resultado("red_error", (code ? code + " " : "") + msg.slice(0, 200));
 }
 
+const CLOUDFLARE_5XX = {
+  520: "cierre_sin_respuesta",  // respuesta vacía o inesperada del origen
+  521: "tcp_refused",           // el origen rechazó la conexión
+  522: "tcp_timeout",           // no se pudo conectar a tiempo
+  523: "red_error",             // origen inalcanzable
+  524: "timeout",               // conectó, pero no respondió a tiempo
+  525: "tls_error",             // falló el saludo TLS con el origen
+  526: "tls_cert_invalido",     // certificado del origen inválido
+};
+
 const tituloDe = (html) => (html.match(/<title[^>]*>([^<]*)/i)?.[1] || "").trim().replace(/\s+/g, " ");
 
 function coincideFirma(f, {titulo, cuerpo, encabezados}) {
@@ -94,6 +104,10 @@ export function clasificarRespuesta({status, encabezados = {}, cuerpo = ""}, sit
   const firma = firmas.find((f) => coincideFirma(f, {titulo, cuerpo: texto, encabezados}));
   if (firma) return {...resultado(firma.tipo, firma.descripcion), firma: firma.id, titulo};
 
+  // Códigos propios de Cloudflare: los genera su red (o el `fetch` de Workers)
+  // cuando no alcanza el servidor de origen. Dicen lo mismo que el error de red.
+  const cf = CLOUDFLARE_5XX[status];
+  if (cf) return {...resultado(cf, `HTTP ${status} (Cloudflare)`), titulo};
   if (status >= 500) return {...resultado("http_5xx", `HTTP ${status}`), titulo};
   if (status === 404 || status === 410) return {...resultado("http_404", `HTTP ${status}`), titulo};
   if (status === 403 || status === 429) return {...resultado("http_403", `HTTP ${status}`), titulo};

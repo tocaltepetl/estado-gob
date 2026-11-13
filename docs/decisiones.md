@@ -122,3 +122,11 @@ variación). Mientras el equipo esté apagado, solo queda el origen `cf`.
 ### Etiquetas
 `scripts/etiquetas.sh` crea `nuevo-sitio`, `reporte`, `scraper-roto`,
 `revision-bloqueada` y `sitio:<id>` por cada sitio del catálogo.
+
+### Primeras horas en producción (2026-11-13)
+- Desde Cloudflare, RPPC responde **520** y Catastro **522**: son códigos que
+  genera la red de Cloudflare cuando no alcanza el origen. Se mapean al mismo
+  tipo que da Node desde México (`cierre_sin_respuesta`, `tcp_timeout`).
+- **SIAPA bloquea las IPs de Cloudflare** (403 en los tres sitios, incluido el
+  portal que desde México funciona). La regla funcionó: se publica «revisión
+  bloqueada», no «caído». Para SIAPA el revisor en México es indispensable.

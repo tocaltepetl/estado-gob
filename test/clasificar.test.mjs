@@ -53,3 +53,10 @@ test("403 y reto de Cloudflare se tratan como bloqueo", () => {
 test("404 sugiere que la URL se movió (nosotros)", () => {
   assert.equal(clasificarRespuesta({status: 404, cuerpo: ""}, {}, F).atribucion, "nosotros");
 });
+
+test("Códigos 52x de Cloudflare (origen cf): mismo diagnóstico que desde México", () => {
+  // Observado en producción el 13 nov 2026: RPPC → 520, Catastro GDL → 522.
+  assert.equal(clasificarRespuesta({status: 520, cuerpo: ""}, {}, F).tipo, "cierre_sin_respuesta");
+  assert.equal(clasificarRespuesta({status: 522, cuerpo: ""}, {}, F).tipo, "tcp_timeout");
+  assert.equal(clasificarRespuesta({status: 503, cuerpo: ""}, {}, F).tipo, "http_5xx");
+});
