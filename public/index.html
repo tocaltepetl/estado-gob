@@ -274,7 +274,7 @@ function abrirReporte(art) {
 // Solicitudes sin cuenta de GitHub (POST /api/solicitud → issue del bot).
 // Clave de sitio de Turnstile (pública). En local se usa la de pruebas, que siempre pasa.
 const TURNSTILE_SITEKEY = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-  ? "1x00000000000000000000AA" : "PENDIENTE_CLAVE_DE_SITIO";
+  ? "1x00000000000000000000AA" : "0x4AAAAAAGAK23V2Exgg0yWS";
 const GH_NUEVO = "https://github.com/tocaltepetl/estado-gob/issues/new?template=";
 const LOGIN = ["No", "Sí, para la parte importante", "No sé"];
 const ERRORES = {url: "Revisa la dirección: debe empezar con https://", dependencia: "Falta la dependencia.",
