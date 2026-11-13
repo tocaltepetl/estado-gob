@@ -59,6 +59,11 @@ cuando solo cambiaron un `id` o nos bloquearon.
 - **Dependencias**: `siapa-recibo` incrusta en un iframe a `siapa-no-adeudo`;
   si la dependencia está caída, el contenedor se publica «degradado»
   (`dependencia_caida`) sin necesidad de navegador.
+- **Recursos** (`espera.recursos`): partes de la página que viven en otro
+  servidor y pueden fallar con HTTP 200, como las teselas del mapa base de
+  `tequierolimpia-gdl` (Carto sin API key entrega una marca de agua, etag
+  `wm-…`). Se piden aparte y, si fallan, la página se publica «degradado»
+  (`recurso_roto`).
 
 ### Casos reales con los que se probó (12–13 nov 2026)
 Desde una conexión residencial en Guadalajara:

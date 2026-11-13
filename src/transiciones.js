@@ -12,7 +12,7 @@
 
 export const CONFIRMAR = 2;
 
-const DEGRADA = new Set(["iframe_vacio", "dependencia_caida"]);
+const DEGRADA = new Set(["iframe_vacio", "dependencia_caida", "recurso_roto"]);
 
 export function siguiente(previo, r) {
   const p = previo || {tipo: null, publico: "sin_datos", consecutivas: 0, huella_ok: null};

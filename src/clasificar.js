@@ -43,6 +43,7 @@ export const TIPOS = {
   selector_ausente:     ["navegador", "nosotros", "No se encontró el elemento esperado"],
   login_rechazado:      ["navegador", "nosotros", "No se pudo iniciar sesión con la cuenta de prueba"],
   dependencia_caida:    ["dependencia", "sitio", "Carga, pero un servicio del que depende está caído"],
+  recurso_roto:         ["dependencia", "sitio", "Carga, pero una parte de la página no funciona"],
 };
 
 const resultado = (tipo, detalle = null) => {
@@ -119,6 +120,21 @@ export function clasificarRespuesta({status, encabezados = {}, cuerpo = ""}, sit
     return {...resultado("falta_marcador", `Sin «${esperado.contiene}»`), titulo};
   }
   return {...resultado("ok"), titulo};
+}
+
+// Recurso del que depende la página (p. ej. las teselas del mapa base), en
+// `espera.recursos`. Un recurso de terceros puede responder 200 y aun así
+// venir roto: Carto, sin API key, entrega una marca de agua con etag «wm-…».
+// `sin_encabezado`: {encabezado: regex} que NO debe coincidir.
+export function clasificarRecurso(recurso, {status, encabezados = {}, error} = {}) {
+  const nombre = recurso.nombre || recurso.url;
+  if (error) return resultado("recurso_roto", `${nombre}: ${clasificarErrorRed(error).detalle || "error de red"}`);
+  if (status < 200 || status >= 300) return resultado("recurso_roto", `${nombre}: HTTP ${status}`);
+  for (const [k, re] of Object.entries(recurso.sin_encabezado || {})) {
+    const v = encabezados[k.toLowerCase()];
+    if (v != null && new RegExp(re, "i").test(v)) return resultado("recurso_roto", recurso.motivo ? `${nombre}: ${recurso.motivo}` : `${nombre}: ${k} «${v}»`);
+  }
+  return resultado("ok");
 }
 
 export const describir = (tipo) => TIPOS[tipo]?.[2] || tipo;
