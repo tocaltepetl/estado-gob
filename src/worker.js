@@ -13,6 +13,7 @@ import {siguiente, combinar} from "./transiciones.js";
 import {TIPOS, describir} from "./clasificar.js";
 import {abrirIssue} from "./avisos.js";
 import {recibirReporte, agregados} from "./reportes.js";
+import {contactoPublico} from "./contacto.js";
 
 const SITIOS = sitiosCfg.sitios;
 const FIRMAS = firmasCfg.firmas;
@@ -139,6 +140,7 @@ async function estado(req, env, ctx, url) {
     const fallas = barras.reduce((a, b) => a + b.fallas, 0);
     return {
       id: s.id, nombre: s.nombre, dependencia: s.dependencia, url: s.url, login: Boolean(s.login), depende: s.depende || [],
+      contacto: contactoPublico(s.contacto),
       publico, tipo: tipo ?? null, motivo: tipo && tipo !== "ok" ? describir(tipo) : null, detalle: st.detalle || null,
       desde: st.desde || null, ts: st.ts || null, nota: st.nota || null,
       disponibilidad: total ? 1 - fallas / total : null, barras,

@@ -63,6 +63,12 @@ footer a{color:inherit}
 .chips button:hover{border-color:var(--down)}
 .rep-form small{display:block;margin-top:8px;color:var(--muted)}
 .otros{display:flex;gap:12px;align-items:center;margin-top:8px}
+.contacto{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--bg);font-size:.88rem}
+.contacto b{display:block;margin-bottom:4px}
+.contacto ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.contacto a{color:inherit;font-weight:600}
+.contacto .plat{color:var(--muted);font-size:.8rem}
+.contacto small{display:block;margin-top:6px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -110,6 +116,7 @@ const INTERP = {falla_sitio:"Falla confirmada", cambio_falla:"Cambió el tipo de
 const TIPOS_REPORTE = [["no_carga","No carga o se queda en blanco"],["parte_no_aparece","Un formulario o parte no aparece"],
   ["login","Error al iniciar sesión"],["pago_descarga","Error al pagar o descargar"],["lenta","Muy lenta"],["otro","Otro"]];
 const ESPERA_REPORTE_MS = 3600000;
+let SITIOS = {};
 const DIAS = 90, DIA_MS = 86400000, TZ_MS = 21600000;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -155,6 +162,7 @@ function tarjeta(s) {
     <div class="pie"><span>hace ${DIAS} días</span><span>${disp} disponible</span><span>hoy</span></div>
     <div class="otros"><details><summary>Historial</summary><ul class="hist">Cargando…</ul></details>
       <button class="rep-btn" type="button">¿No te funciona?</button></div>
+    ${contacto(s)}
     <div class="rep-form" hidden></div>
   </article>`;
 }
@@ -182,6 +190,23 @@ async function historial(det) {
   } catch { ul.innerHTML = `<li class="error">No se pudo cargar.</li>`; }
 }
 
+// «¿A quién avisar?»: canales oficiales del sitio (config/sitios.json → contacto).
+function contacto(s, siempre = false) {
+  if (!siempre && !["caido", "degradado"].includes(s.publico)) return "";
+  if (!s.contacto?.length) {
+    return `<div class="contacto"><b>¿A quién avisar?</b>No encontramos un canal oficial publicado.
+      <a href="https://github.com/tocaltepetl/estado-gob/issues/new?template=nuevo-sitio.yml">¿Conoces uno?</a></div>`;
+  }
+  const generales = s.contacto.every((c) => !c.especifico);
+  const items = s.contacto.map((c) => {
+    const externo = /^https:/.test(c.href) ? ` rel="noopener" target="_blank"` : "";
+    const nombre = c.etiqueta ? `${esc(c.etiqueta)}: ` : "";
+    return `<li><span class="plat">${esc(c.plataforma)}</span> ${nombre}<a href="${esc(c.href)}"${externo}>${esc(c.texto)}</a>${c.nota ? ` · ${esc(c.nota)}` : ""}</li>`;
+  }).join("");
+  return `<div class="contacto"><b>¿A quién avisar?</b><ul>${items}</ul>
+    ${generales ? "<small>Son canales de atención general de la dependencia; no tiene uno específico para fallas de la página.</small>" : ""}</div>`;
+}
+
 const leer = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 
@@ -193,7 +218,8 @@ function abrirReporte(art) {
   if (Date.now() - previo < ESPERA_REPORTE_MS) { f.innerHTML = "<p>Gracias, ya registramos tu reporte de esta página.</p>"; return; }
   f.innerHTML = `<p>¿Qué pasa? Tu reporte es anónimo.</p><div class="chips">${TIPOS_REPORTE.map(([, t], k) =>
     `<button type="button" data-k="${k}">${t}</button>`).join("")}</div>
-    <small>Solo guardamos la página, el tipo de falla y la hora. Para dar detalles, usa «Reportar con detalle» abajo.</small>`;
+    <small>Solo guardamos la página, el tipo de falla y la hora. Para dar detalles, usa «Reportar con detalle» abajo.</small>
+    ${art.querySelector(".contacto") ? "" : contacto(SITIOS[id], true)}`;
   f.querySelectorAll("button").forEach((b) => b.addEventListener("click", async () => {
     f.querySelectorAll("button").forEach((x) => x.disabled = true);
     try {
@@ -212,6 +238,7 @@ async function cargar() {
   try {
     const d = await (await fetch("/api/estado")).json();
     resumen(d.sitios);
+    SITIOS = Object.fromEntries(d.sitios.map((s) => [s.id, s]));
     const grupos = {};
     for (const s of d.sitios) (grupos[s.dependencia] ||= []).push(s);
     $("#lista").innerHTML = Object.entries(grupos).map(([g, ss]) =>
