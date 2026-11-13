@@ -35,3 +35,10 @@ test("rechaza valores inválidos o campos desconocidos", () => {
   assert.equal(validarContacto([{tipo: "x", valor: "a", url: "y"}]).length, 1);
   assert.deepEqual(contactoPublico([{tipo: "web", valor: "http://inseguro"}]), []);    // inválidos no se publican
 });
+
+test("bloquea: solo orígenes válidos distintos de mx", () => {
+  for (const s of sitiosCfg.sitios) {
+    if (s.bloquea === undefined) continue;
+    assert.ok(Array.isArray(s.bloquea) && s.bloquea.every((o) => /^[a-z]{2,8}$/.test(o) && o !== "mx"), s.id);
+  }
+});

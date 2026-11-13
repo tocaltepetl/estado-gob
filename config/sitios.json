@@ -1,5 +1,5 @@
 {
-  "_nota": "Catálogo de sitios. Para proponer uno nuevo, abre un issue con la plantilla «Nuevo sitio». Campos: id (único, no cambia), nombre, dependencia, url, tipo ('http' en la etapa 1; 'navegador' en la etapa 3), espera.status, espera.contiene (regex sin distinguir mayúsculas que debe aparecer si la página está sana), depende (ids de sitios incrustados, p. ej. un iframe), login (true si la parte importante requiere sesión: monitoreo parcial), contacto (canales oficiales para avisar de fallas; ver src/contacto.js: tipo x|facebook|instagram|tiktok|youtube|whatsapp|telefono|correo|web|otro, valor, etiqueta, nota, especifico = true solo si atiende fallas de la página).",
+  "_nota": "Catálogo de sitios. Para proponer uno nuevo, abre un issue con la plantilla «Nuevo sitio». Campos: id (único, no cambia), nombre, dependencia, url, tipo ('http' en la etapa 1; 'navegador' en la etapa 3), espera.status, espera.contiene (regex sin distinguir mayúsculas que debe aparecer si la página está sana), depende (ids de sitios incrustados, p. ej. un iframe), bloquea (orígenes de revisión que el sitio bloquea a propósito, p. ej. [«cf»]; ese bloqueo conocido no abre issue), login (true si la parte importante requiere sesión: monitoreo parcial), contacto (canales oficiales para avisar de fallas; ver src/contacto.js: tipo x|facebook|instagram|tiktok|youtube|whatsapp|telefono|correo|web|otro, valor, etiqueta, nota, especifico = true solo si atiende fallas de la página).",
   "sitios": [
     {
       "id": "jalisco-portal",
@@ -47,6 +47,7 @@
       "dependencia": "SIAPA",
       "url": "https://www.siapa.gob.mx/",
       "tipo": "http",
+      "bloquea": ["cf"],
       "espera": {"status": 200, "contiene": "SIAPA"},
       "contacto": [
         {"tipo": "whatsapp", "valor": "+52 33 5164 4440", "etiqueta": "SIAPA Bot", "nota": "Consultas y reportes; da folio"},
@@ -61,6 +62,7 @@
       "dependencia": "SIAPA",
       "url": "https://www.siapa.gob.mx/reciboenlinea",
       "tipo": "http",
+      "bloquea": ["cf"],
       "espera": {"status": 200, "contiene": "servicios\\.siapa\\.gob\\.mx/RegistroWeb"},
       "depende": ["siapa-no-adeudo"],
       "contacto": [
@@ -76,6 +78,7 @@
       "dependencia": "SIAPA",
       "url": "https://servicios.siapa.gob.mx/RegistroWeb/IngresoSD.aspx",
       "tipo": "http",
+      "bloquea": ["cf"],
       "espera": {"status": 200},
       "login": true,
       "contacto": [

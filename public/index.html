@@ -148,7 +148,8 @@ function barras(s) {
 
 function tarjeta(s) {
   const etqs = [s.login && `<span class="etq" title="Requiere sesión: solo se revisa la parte pública">monitoreo parcial</span>`,
-                s.nota === "geobloqueo_probable" && `<span class="etq" title="Falla solo desde fuera de México">posible geobloqueo</span>`].filter(Boolean).join(" ");
+                s.nota === "geobloqueo_probable" && `<span class="etq" title="Falla solo desde fuera de México">posible geobloqueo</span>`,
+                s.nota === "bloqueo_conocido" && `<span class="etq" title="Este sitio bloquea las revisiones desde fuera de México; su estado viene de la revisión en México">revisado desde México</span>`].filter(Boolean).join(" ");
   const motivo = s.motivo ? `${esc(s.motivo)}${s.desde ? ` · desde ${hace(s.desde)}` : ""}` :
                  s.ts ? `Última revisión ${hace(s.ts)}` : "";
   const disp = s.disponibilidad == null ? "—" : (s.disponibilidad * 100).toFixed(2) + " %";
