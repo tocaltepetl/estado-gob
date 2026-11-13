@@ -14,6 +14,8 @@ trámites en línea de gobierno en Jalisco. Revisa cada página cada 5 minutos.
   responde pero el servidor de atrás no», «carga, pero el formulario incrustado
   está caído»…
 - Barras de los últimos 90 días, disponibilidad y el historial de cambios.
+- **¿No te funciona?**: reporte anónimo en un toque (página y tipo de falla,
+  nada más). Se muestra cuando lo reportan al menos 3 personas.
 
 ## Cómo funciona
 - `src/clasificar.js`: convierte lo que pasó (error de red o respuesta HTTP)
@@ -46,6 +48,8 @@ TOKEN_REVISOR=local node scripts/revisar.mjs --enviar http://localhost:8791
 ## API
 - `GET /api/estado`: estado de cada sitio, motivo y barras diarias (90 días).
 - `GET /api/historial?sitio=ID`: últimas revisiones y transiciones.
+- `POST /api/reporte` `{sitio, k}`: reporte anónimo desde la página. Los
+  conteos aparecen en `/api/estado` (campo `reportes`) a partir de 3.
 
 ## Agregar una página
 Abre un issue con la plantilla **Nuevo sitio**, o un PR que edite

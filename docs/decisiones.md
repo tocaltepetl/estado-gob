@@ -82,13 +82,43 @@ Las revisiones con navegador (etapa 3) irán a 15–30 min.
 Esta etapa no guarda nada de visitantes. Los reportes ciudadanos (etapa 2)
 seguirán el modelo de camiones: listas cerradas, sin texto libre ni IP.
 
-### Pendiente para la etapa 2
-- `wrangler d1 create estado-gob` y poner el id en `wrangler.jsonc`.
-- Secretos `TOKEN_REVISOR` y `GITHUB_TOKEN` (fine-grained, solo Issues: write).
-- Dominio `estado.tocaltepetl.org`; workflows de publicación copiados de camiones.
-- Crear las etiquetas `scraper-roto`, `revision-bloqueada`, `nuevo-sitio`,
-  `reporte` y `sitio:<id>`.
-- Reportes anónimos de fallas desde la página (sin cuenta de GitHub).
-
 ### Cómo revertir
 Nada fuera de este repo depende de él.
+
+---
+
+## Etapa 2 — publicación y reportes ciudadanos (2026-11-13)
+
+### Reportes ciudadanos anónimos
+**Opciones:** solo GitHub Issues · **botón en la página + Issues para detalle (elegida)**.
+Pedir una cuenta de GitHub deja fuera a casi todos. Mismo modelo que el conteo
+de `camiones-basura-gdl`:
+- `POST /api/reporte` con `{sitio, k}`: sitio del catálogo y tipo de falla de
+  una lista cerrada (`TIPOS_REPORTE` en `src/reportes.js`). Sin texto libre,
+  cookies, IP ni identificadores; la IP solo es la llave en memoria del
+  límite de 10/min (binding `LIMITE`). Solo acepta `Origin` del propio sitio.
+- Solo el dominio de producción (y `localhost`) guarda: las vistas previas de
+  los PR comparten la base.
+- `/api/estado` publica conteos de las últimas 2 h y 24 h **solo a partir de
+  3 reportes** (y por tipo, también a partir de 3).
+- La página evita reportes repetidos de la misma persona con `localStorage`
+  (1 h por sitio). No es una barrera real; el umbral y el límite por IP sí.
+- Los reportes **no cambian el estado** de un sitio: se muestran junto a él
+  («N personas reportaron fallas en las últimas 2 h»). Sirven para ver fallas
+  que la revisión automática no detecta (p. ej. tras iniciar sesión) y para
+  desempatar cuando una revisión queda «en revisión».
+- La plantilla «Reportar una falla» de GitHub queda para quien quiera dar detalles.
+
+### Publicación
+Igual que camiones: `release.yml` calcula la versión con los títulos de los PR
+y espera aprobación en el ambiente `production`; `desplegar.yml` vuelve a
+publicar una versión anterior; vistas previas por PR (`preview_urls`).
+Dominio `estado.tocaltepetl.org` (Custom Domain del Worker).
+
+### Revisor en México
+`scripts/systemd/`: servicio y timer de usuario (cada 5 min con 30 s de
+variación). Mientras el equipo esté apagado, solo queda el origen `cf`.
+
+### Etiquetas
+`scripts/etiquetas.sh` crea `nuevo-sitio`, `reporte`, `scraper-roto`,
+`revision-bloqueada` y `sitio:<id>` por cada sitio del catálogo.
