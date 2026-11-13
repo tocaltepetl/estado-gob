@@ -143,3 +143,13 @@ correo general; RPPC y el portal de Jalisco, nada encontrado.
   general; si todos son generales, la página lo dice para no prometer de más.
 - Se muestra en sitios caídos o degradados y dentro de «¿No te funciona?».
   Sin canal publicado, la página lo dice e invita a proponer uno.
+
+### Issues automáticos y bloqueos conocidos (2026-11-13)
+Con `GITHUB_TOKEN` (fine-grained, solo «Issues: write» sobre este repo) el
+Worker abre issues `scraper-roto` y `revision-bloqueada`. El bloqueo de SIAPA a
+Cloudflare ya es conocido: abriría un issue por sitio que no dice nada nuevo.
+- Campo `bloquea` en el catálogo (p. ej. `["cf"]`): ese bloqueo desde ese
+  origen no abre issue. Un bloqueo desde otro origen (p. ej. `mx`) o un
+  rediseño sí avisan.
+- En la página, en lugar de «posible geobloqueo», la tarjeta dice «revisado
+  desde México».

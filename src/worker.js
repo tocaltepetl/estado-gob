@@ -11,7 +11,7 @@ import firmasCfg from "../config/firmas.json" with {type: "json"};
 import {revisar} from "./revisar.js";
 import {siguiente, combinar} from "./transiciones.js";
 import {TIPOS, describir} from "./clasificar.js";
-import {abrirIssue} from "./avisos.js";
+import {abrirIssue, debeAvisar} from "./avisos.js";
 import {recibirReporte, agregados} from "./reportes.js";
 import {contactoPublico} from "./contacto.js";
 
@@ -72,8 +72,8 @@ export async function registrar(env, r) {
 
   if (!transicion) return;
   let issue = null;
-  if (accion === "revisar" || accion === "bloqueo") {
-    const sitio = SITIOS.find((s) => s.id === r.sitio);
+  const sitio = SITIOS.find((s) => s.id === r.sitio);
+  if (debeAvisar(sitio, r, accion)) {
     issue = await abrirIssue(env, {sitio, r, previo, transicion}).catch((err) => { console.error(err); return null; });
   }
   await db.prepare("INSERT INTO transiciones (sitio, origen, ts, de, a, interpretacion, issue) VALUES (?,?,?,?,?,?,?)")
@@ -129,6 +129,8 @@ async function estado(req, env, ctx, url) {
 
   const sitios = SITIOS.map((s) => {
     let st = actual[s.id];
+    // Bloqueo conocido (catálogo): se dice como dato, no como «posible geobloqueo».
+    if (st.nota === "geobloqueo_probable" && s.bloquea?.length) st = {...st, nota: "bloqueo_conocido"};
     let tipo = st.tipo, publico = st.publico;
     // Dependencias: el contenedor carga pero algo incrustado está caído.
     if (publico === "operando" && s.depende?.some((d) => actual[d]?.publico === "caido")) {

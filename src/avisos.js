@@ -13,6 +13,14 @@ const TITULOS = {
   bloqueo: "Revisión bloqueada",
 };
 
+// ¿Se abre issue para esta transición? Un bloqueo ya conocido y declarado en
+// el catálogo (`bloquea: ["cf"]`) no es novedad: no abre issue.
+export function debeAvisar(sitio, r, accion) {
+  if (accion === "revisar") return true;
+  if (accion === "bloqueo") return !(sitio?.bloquea || []).includes(r.origen);
+  return false;
+}
+
 export async function abrirIssue(env, {sitio, r, previo, transicion}) {
   if (!env.GITHUB_TOKEN || !sitio) return null;
   const etiqueta = transicion.interpretacion === "bloqueo" ? "revision-bloqueada" : "scraper-roto";

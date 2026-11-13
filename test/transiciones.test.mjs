@@ -80,3 +80,13 @@ test("combinar: a igual gravedad, prefiere el diagnóstico de México", () => {
   const r = combinar([{origen: "cf", publico: "caido", tipo: "tcp_reset", ts: ahora}, {origen: "mx", publico: "caido", tipo: "cierre_sin_respuesta", ts: ahora}], ahora);
   assert.equal(r.tipo, "cierre_sin_respuesta");
 });
+
+test("debeAvisar: un bloqueo conocido del catálogo no abre issue", async () => {
+  const {debeAvisar} = await import("../src/avisos.js");
+  const siapa = {id: "siapa-portal", bloquea: ["cf"]};
+  assert.equal(debeAvisar(siapa, {origen: "cf"}, "bloqueo"), false);
+  assert.equal(debeAvisar(siapa, {origen: "mx"}, "bloqueo"), true);      // desde México sí es novedad
+  assert.equal(debeAvisar({id: "otro"}, {origen: "cf"}, "bloqueo"), true);
+  assert.equal(debeAvisar(siapa, {origen: "cf"}, "revisar"), true);      // un rediseño siempre avisa
+  assert.equal(debeAvisar(siapa, {origen: "cf"}, "publicar"), false);
+});
