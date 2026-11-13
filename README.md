@@ -62,7 +62,7 @@ TOKEN_REVISOR=local node scripts/revisar.mjs --enviar http://localhost:8791
 ## Agregar una página
 Usa «Solicitar una página» en el sitio (no necesitas cuenta), abre un issue
 con la plantilla **Nuevo sitio**, o manda un PR que edite
-`config/sitios.json`. Si la página necesita iniciar sesión, se revisa solo la
+`config/sitios.json`. Si la página solo carga después de visitar otra (cookies de sesión), usa `previa`; ver el caso del SAT en `docs/decisiones.md`. Si la página necesita iniciar sesión, se revisa solo la
 parte pública y se marca como «monitoreo parcial».
 
 ## Etiquetas

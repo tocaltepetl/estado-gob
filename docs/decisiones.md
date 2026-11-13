@@ -187,3 +187,23 @@ Cloudflare ya es conocido: abriría un issue por sitio que no dice nada nuevo.
   mantenimiento. Si el spam rebasa a Turnstile, ese es el siguiente paso.
 - Solo el dominio de producción abre issues: las vistas previas comparten los
   secretos.
+
+### SAT: login de Factura Electrónica (2026-11-13)
+La página de inicio de sesión (`cfdiau.sat.gob.mx/nidp/wsfed/ep?...`) tiene
+tres trucos que explican por qué «a veces no carga» según el navegador o de
+dónde vengas:
+- **Sin sesión responde 200 en blanco.** El flujo normal es sat.gob.mx →
+  `portalcfdi` → 302 a `wsfed_portalCFDI.jsp`, que pone las cookies
+  (`JSESSIONID`, F5) y envía un formulario a `ep`. Si abres `ep` directo, sale
+  vacía. Campo nuevo `previa`: el revisor visita antes el JSP y reenvía sus
+  cookies. La página de trámites de sat.gob.mx no pone cookies; solo es el
+  camino para llegar.
+- **`portalcfdi` no envía el certificado intermedio** (GlobalSign RSA OV SSL CA
+  2018). Chrome lo baja (AIA); Firefox depende de los intermedios que ya tenga
+  guardados, y Node falla. Por eso `previa` entra directo al JSP en `cfdiau`,
+  que sí manda la cadena completa. Campo nuevo `enlace`: la página enlaza a
+  `portalcfdi`, la entrada que funciona para una persona.
+- **`cfdiau` prefiere DHE con una clave débil.** OpenSSL lo rechaza («dh key
+  too small»). Los navegadores y Workers no ofrecen DHE y negocian ECDHE; el
+  revisor en Node quita DHE igual (`scripts/revisar.mjs`).
+- `contiene` busca «contraseña» para que la página en blanco cuente como falla.

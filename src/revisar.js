@@ -11,13 +11,19 @@ const MAX_BYTES = 2_000_000;
 export async function revisar(sitio, firmas, {origen}) {
   const t0 = Date.now();
   const base = {sitio: sitio.id, ts: t0, origen};
+  const headers = {"user-agent": UA, "accept": "text/html,*/*;q=0.8", "accept-language": "es-MX,es;q=0.9"};
+  const signal = AbortSignal.timeout(TIMEOUT_MS);
   let res;
   try {
-    res = await fetch(sitio.url, {
-      headers: {"user-agent": UA, "accept": "text/html,*/*;q=0.8", "accept-language": "es-MX,es;q=0.9"},
-      redirect: "follow",
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
+    // `previa`: página que hay que visitar antes para obtener la sesión (cookies).
+    // Sin ella, algunos sitios (p. ej. el login del SAT) responden 200 en blanco.
+    if (sitio.previa) {
+      const r0 = await fetch(sitio.previa, {headers, redirect: "follow", signal});
+      await r0.arrayBuffer();
+      const cookie = r0.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ");
+      if (cookie) headers.cookie = cookie;
+    }
+    res = await fetch(sitio.url, {headers, redirect: "follow", signal});
   } catch (err) {
     return {...base, ms: Date.now() - t0, http: null, huella: null, titulo: null, ...clasificarErrorRed(err)};
   }
