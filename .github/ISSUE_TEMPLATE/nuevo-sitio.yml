@@ -17,6 +17,17 @@ body:
       placeholder: p. ej. SIAPA, Gobierno de Jalisco, Ayuntamiento de Zapopan
     validations:
       required: true
+  - type: input
+    id: lugar
+    attributes:
+      label: Estado y municipio
+      description: El municipio solo si es de un ayuntamiento.
+      placeholder: p. ej. Jalisco, Zapopan
+  - type: input
+    id: temas
+    attributes:
+      label: Temas (opcional)
+      description: Palabras cortas para filtrar, p. ej. agua, pagos, propiedad, catastro.
   - type: textarea
     id: para-que
     attributes:
