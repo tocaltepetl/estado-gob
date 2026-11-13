@@ -18,7 +18,15 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Logo de estado gob: barras de disponibilidad dentro de un cerro con agua">
 <meta name="twitter:card" content="summary_large_image">
-<script>try{const t=localStorage.getItem("estado-gob:tema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch{}</script>
+<script>
+// Tema elegido a mano: se aplica antes de pintar, y la barra del navegador (theme-color) lo sigue.
+function aplicarTema(t) {
+  document.documentElement.dataset.theme = t;
+  const color = t === "dark" ? "#141917" : "#EFE9DC";
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", color));
+}
+try { const t = localStorage.getItem("estado-gob:tema"); if (t === "light" || t === "dark") aplicarTema(t); } catch {}
+</script>
 <style>
 :root{
   --bg:#EFE9DC;--card:#FBF8F1;--fg:#1D2420;--muted:#5d665f;--line:#ddd5c4;
@@ -424,7 +432,7 @@ $("#tema").addEventListener("click", () => {
   const actual = document.documentElement.dataset.theme ||
     (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   const nuevo = actual === "dark" ? "light" : "dark";
-  document.documentElement.dataset.theme = nuevo;
+  aplicarTema(nuevo);
   guardar("estado-gob:tema", nuevo);
 });
 $("#buscar").addEventListener("input", pintar);
