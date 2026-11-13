@@ -1,0 +1,63 @@
+{
+  "_nota": "Catálogo de sitios. Para proponer uno nuevo, abre un issue con la plantilla «Nuevo sitio». Campos: id (único, no cambia), nombre, dependencia, url, tipo ('http' en la etapa 1; 'navegador' en la etapa 3), espera.status, espera.contiene (regex sin distinguir mayúsculas que debe aparecer si la página está sana), depende (ids de sitios incrustados, p. ej. un iframe), login (true si la parte importante requiere sesión: monitoreo parcial).",
+  "sitios": [
+    {
+      "id": "jalisco-portal",
+      "nombre": "Portal del Gobierno de Jalisco",
+      "dependencia": "Gobierno de Jalisco",
+      "url": "https://www.jalisco.gob.mx/",
+      "tipo": "http",
+      "espera": {"status": 200, "contiene": "Gobierno de Jalisco"}
+    },
+    {
+      "id": "rppc-jalisco",
+      "nombre": "Registro Público de la Propiedad y de Comercio",
+      "dependencia": "Gobierno de Jalisco",
+      "url": "https://rppc.jalisco.gob.mx/",
+      "tipo": "http",
+      "espera": {"status": 200}
+    },
+    {
+      "id": "guadalajara-portal",
+      "nombre": "Portal del Ayuntamiento de Guadalajara",
+      "dependencia": "Ayuntamiento de Guadalajara",
+      "url": "https://guadalajara.gob.mx/",
+      "tipo": "http",
+      "espera": {"status": 200}
+    },
+    {
+      "id": "catastro-gdl-tramites",
+      "nombre": "Catastro de Guadalajara: trámites",
+      "dependencia": "Ayuntamiento de Guadalajara",
+      "url": "https://catastro.guadalajara.gob.mx/tramites.php",
+      "tipo": "http",
+      "espera": {"status": 200}
+    },
+    {
+      "id": "siapa-portal",
+      "nombre": "Portal de SIAPA",
+      "dependencia": "SIAPA",
+      "url": "https://www.siapa.gob.mx/",
+      "tipo": "http",
+      "espera": {"status": 200, "contiene": "SIAPA"}
+    },
+    {
+      "id": "siapa-recibo",
+      "nombre": "SIAPA: recibo y servicios en línea",
+      "dependencia": "SIAPA",
+      "url": "https://www.siapa.gob.mx/reciboenlinea",
+      "tipo": "http",
+      "espera": {"status": 200, "contiene": "servicios\\.siapa\\.gob\\.mx/RegistroWeb"},
+      "depende": ["siapa-no-adeudo"]
+    },
+    {
+      "id": "siapa-no-adeudo",
+      "nombre": "SIAPA: registro y constancia de no adeudo",
+      "dependencia": "SIAPA",
+      "url": "https://servicios.siapa.gob.mx/RegistroWeb/IngresoSD.aspx",
+      "tipo": "http",
+      "espera": {"status": 200},
+      "login": true
+    }
+  ]
+}
