@@ -1,0 +1,36 @@
+# Vista previa de los PR desde forks. Por seguridad NO descarga ni ejecuta el
+# código del fork y NO usa secretos: solo comenta un enlace a la página tal
+# como está en ese commit, servida por raw.githack.com desde GitHub.
+name: Vista previa (fork)
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+permissions: {}
+jobs:
+  enlace:
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Comentar enlace
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          url="https://raw.githack.com/$HEAD_REPO/$SHA/public/index.html"
+          body="<!-- vista-previa -->
+          🔎 **Vista previa (fork):** $url
+
+          Commit \`${SHA:0:7}\` · servida desde GitHub por raw.githack.com · se actualiza con cada push."
+          marker="<!-- vista-previa -->"
+          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"$marker\"))) | .id" | head -1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$id" -f body="$body" >/dev/null
+          else
+            gh api -X POST "repos/$REPO/issues/$PR/comments" -f body="$body" >/dev/null
+          fi

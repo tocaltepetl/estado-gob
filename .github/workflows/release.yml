@@ -1,0 +1,83 @@
+# Con cada push a main calcula la siguiente versión a partir de los títulos de
+# los PR (Conventional Commits). Si hay algo que publicar, espera aprobación en
+# el ambiente «production»; al aprobar despliega y crea el tag y el Release.
+# No hay PR de versión ni commits del bot a main.
+name: Versión
+on:
+  push:
+    branches: [main]
+permissions: {}
+# Una sola publicación a la vez. Si llegan varios merges mientras uno espera
+# aprobación, GitHub deja solo el más reciente, que incluye todos los cambios.
+concurrency:
+  group: produccion
+  cancel-in-progress: false
+jobs:
+  calcular:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Calcular versión
+        id: v
+        run: |
+          version=$(.github/scripts/siguiente-version.sh notas.md)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ -z "$version" ]; then
+            echo "Sin cambios que publicar (solo docs, ci, chore…)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            { echo "## Versión propuesta: $version"; echo; cat notas.md; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - if: steps.v.outputs.version != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: notas
+          path: notas.md
+
+  publicar:
+    needs: calcular
+    if: needs.calcular.outputs.version != ''
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://estado.tocaltepetl.org
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: notas
+      - name: Poner la versión en la página
+        env:
+          VERSION: ${{ needs.calcular.outputs.version }}
+        run: |
+          sed -i -E "s|(class=\"ver\"[^>]*>)[^<]*(</a>)|\1$VERSION\2|" public/index.html
+          grep -q ">$VERSION</a>" public/index.html || { echo "::error::No se encontró el marcador de versión en public/index.html."; exit 1; }
+      - name: Aplicar migraciones de D1
+        # Solo migraciones que agregan (nunca borran): una versión anterior
+        # desplegada con desplegar.yml sigue funcionando con el esquema nuevo.
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx -y wrangler@4.160.1 d1 migrations apply DB --remote
+      - name: Desplegar a producción
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          VERSION: ${{ needs.calcular.outputs.version }}
+        run: npx -y wrangler@4.160.1 deploy --message "$VERSION"
+      - name: Crear tag y Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.calcular.outputs.version }}
+          SHA: ${{ github.sha }}
+        run: gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" --target "$SHA" --title "$VERSION" --notes-file notas.md

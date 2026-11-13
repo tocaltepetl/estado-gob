@@ -23,6 +23,13 @@
 			"migrations_dir": "migrations"
 		}
 	],
+	"ratelimits": [
+		// Contra spam en POST /api/reporte: 10 por minuto por IP (la IP no se guarda).
+		{"name": "LIMITE", "namespace_id": "1002", "simple": {"limit": 10, "period": 60}}
+	],
+	"routes": [
+		{"pattern": "estado.tocaltepetl.org", "custom_domain": true}
+	],
 	// Secretos (no van aquí): TOKEN_REVISOR (revisor en México) y GITHUB_TOKEN
 	// (issues automáticos). En local van en .dev.vars.
 	"workers_dev": false,
