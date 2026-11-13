@@ -10,6 +10,11 @@
 //   node scripts/revisar.mjs --sitio rppc-jalisco
 // Para cada 5 min: un timer de systemd o cron en una máquina en México.
 
+import tls from "node:tls";
+// Como Chrome y Firefox, no ofrecemos DHE: el SAT lo prefiere con una clave de
+// 1024 bits que OpenSSL rechaza («dh key too small»); los navegadores negocian ECDHE.
+tls.DEFAULT_CIPHERS += ":!kEDH";
+
 import sitiosCfg from "../config/sitios.json" with {type: "json"};
 import firmasCfg from "../config/firmas.json" with {type: "json"};
 import {revisar} from "../src/revisar.js";

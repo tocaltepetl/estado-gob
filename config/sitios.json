@@ -1,5 +1,5 @@
 {
-  "_nota": "Catálogo de sitios. Para proponer uno nuevo, abre un issue con la plantilla «Nuevo sitio». Campos: id (único, no cambia), nombre, dependencia, estado (entidad federativa), municipio (solo si el sitio es de un ayuntamiento), temas (etiquetas cortas en minúsculas, p. ej. agua|pagos|propiedad; reutiliza las existentes), url, tipo ('http' en la etapa 1; 'navegador' en la etapa 3), espera.status, espera.contiene (regex sin distinguir mayúsculas que debe aparecer si la página está sana), depende (ids de sitios incrustados, p. ej. un iframe), bloquea (orígenes de revisión que el sitio bloquea a propósito, p. ej. [«cf»]; ese bloqueo conocido no abre issue), login (true si la parte importante requiere sesión: monitoreo parcial), contacto (canales oficiales para avisar de fallas; ver src/contacto.js: tipo x|facebook|instagram|tiktok|youtube|whatsapp|telefono|correo|web|otro, valor, etiqueta, nota, especifico = true solo si atiende fallas de la página).",
+  "_nota": "Catálogo de sitios. Para proponer uno nuevo, abre un issue con la plantilla «Nuevo sitio». Campos: id (único, no cambia), nombre, dependencia, estado (entidad federativa), municipio (solo si el sitio es de un ayuntamiento), temas (etiquetas cortas en minúsculas, p. ej. agua|pagos|propiedad; reutiliza las existentes), url, tipo ('http' en la etapa 1; 'navegador' en la etapa 3), espera.status, espera.contiene (regex sin distinguir mayúsculas que debe aparecer si la página está sana), previa (URL que se visita antes para obtener las cookies de sesión), enlace (URL pública que se muestra si difiere de url), depende (ids de sitios incrustados, p. ej. un iframe), bloquea (orígenes de revisión que el sitio bloquea a propósito, p. ej. [«cf»]; ese bloqueo conocido no abre issue), login (true si la parte importante requiere sesión: monitoreo parcial), contacto (canales oficiales para avisar de fallas; ver src/contacto.js: tipo x|facebook|instagram|tiktok|youtube|whatsapp|telefono|correo|web|otro, valor, etiqueta, nota, especifico = true solo si atiende fallas de la página).",
   "sitios": [
     {
       "id": "jalisco-portal",
@@ -93,6 +93,23 @@
         {"tipo": "telefono", "valor": "073", "etiqueta": "SIAPATEL"},
         {"tipo": "x", "valor": "siapagdl", "nota": "Avisos oficiales"},
         {"tipo": "facebook", "valor": "siapagdl"}
+      ]
+    },
+    {
+      "id": "sat-cfdi-login",
+      "nombre": "SAT: inicio de sesión de Factura Electrónica (CFDI)",
+      "dependencia": "SAT",
+      "estado": "Federal",
+      "temas": ["impuestos", "facturas"],
+      "url": "https://cfdiau.sat.gob.mx/nidp/wsfed/ep?id=SATUPCFDiCon&sid=0&option=credential&sid=0",
+      "previa": "https://cfdiau.sat.gob.mx/nidp/wsfed_portalCFDI.jsp?wa=wsignin1.0&wtrealm=https%3a%2f%2fportalcfdi.facturaelectronica.sat.gob.mx&wctx=rm%3d0%26id%3dpassive%26ru%3d%252f&wreply=https%3a%2f%2fportalcfdi.facturaelectronica.sat.gob.mx",
+      "enlace": "https://portalcfdi.facturaelectronica.sat.gob.mx/",
+      "tipo": "http",
+      "espera": {"status": 200, "contiene": "contrase(ñ|&ntilde;)a"},
+      "login": true,
+      "contacto": [
+        {"tipo": "telefono", "valor": "55 627 22 728", "etiqueta": "MarcaSAT", "nota": "Lunes a viernes, 9 a 18 h"},
+        {"tipo": "x", "valor": "SATMX"}
       ]
     }
   ]
