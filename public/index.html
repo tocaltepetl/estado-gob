@@ -259,10 +259,12 @@ function tarjeta(s) {
 function resumen(sitios) {
   const caidos = sitios.filter((s) => s.publico === "caido").length;
   const deg = sitios.filter((s) => s.publico === "degradado").length;
+  const sinDatos = sitios.filter((s) => s.publico === "sin_datos").length;
   const el = $("#resumen");
   const [cls, txt] = caidos ? ["caido", `${caidos} ${caidos === 1 ? "página caída" : "páginas caídas"}${deg ? ` y ${deg} con fallas parciales` : ""}`] :
                      deg ? ["degradado", `${deg} ${deg === 1 ? "página con fallas parciales" : "páginas con fallas parciales"}`] :
-                     ["operando", "Todas las páginas revisadas funcionan"];
+                     sinDatos === sitios.length ? ["sin_datos", "Aún no hay revisiones registradas"] :
+                     ["operando", sinDatos ? `Todas las páginas revisadas funcionan (${sinDatos} aún sin datos)` : "Todas las páginas revisadas funcionan"];
   el.className = "resumen " + cls;
   el.innerHTML = `<span class="punto"></span><span>${txt}</span>`;
 }
