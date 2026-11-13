@@ -61,6 +61,14 @@ Abre un issue con la plantilla **Nuevo sitio**, o un PR que edite
 `config/sitios.json`. Si la página necesita iniciar sesión, se revisa solo la
 parte pública y se marca como «monitoreo parcial».
 
+## Etiquetas
+Cada sitio lleva en `config/sitios.json` su `estado`, su `municipio` (solo si
+es de un ayuntamiento) y `temas` (palabras cortas en minúsculas, p. ej.
+`agua`, `pagos`). Junto con la dependencia, la página las usa como filtros
+(`?etq=tema:agua&etq=municipio:Guadalajara`): dentro de una misma categoría se
+combinan con «o», entre categorías con «y». Reutiliza los temas existentes antes
+de inventar uno nuevo.
+
 ## Canales de contacto
 Cada sitio puede listar en `config/sitios.json` los canales oficiales para
 avisar de fallas (`contacto`). La página los muestra como «¿A quién avisar?»

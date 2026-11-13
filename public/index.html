@@ -18,6 +18,15 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Logo de estado gob: barras de disponibilidad dentro de un cerro con agua">
 <meta name="twitter:card" content="summary_large_image">
+<script>
+// Tema elegido a mano: se aplica antes de pintar, y la barra del navegador (theme-color) lo sigue.
+function aplicarTema(t) {
+  document.documentElement.dataset.theme = t;
+  const color = t === "dark" ? "#141917" : "#EFE9DC";
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", color));
+}
+try { const t = localStorage.getItem("estado-gob:tema"); if (t === "light" || t === "dark") aplicarTema(t); } catch {}
+</script>
 <style>
 :root{
   --bg:#EFE9DC;--card:#FBF8F1;--fg:#1D2420;--muted:#5d665f;--line:#ddd5c4;
@@ -33,6 +42,13 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:860px;margin:0 auto;padding:24px 16px 64px}
+header{position:relative;padding-right:48px}
+.tema{position:absolute;top:0;right:0;width:38px;height:38px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;display:grid;place-items:center}
+.tema:hover{border-color:var(--muted)}
+.tema:focus-visible{outline:2px solid var(--deg);outline-offset:2px}
+.tema .sol{display:none}
+:root[data-theme="dark"] .tema .sol{display:block}:root[data-theme="dark"] .tema .luna{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tema .sol{display:block}:root:not([data-theme="light"]) .tema .luna{display:none}}
 header h1{font-size:1.6rem;margin:0 0 4px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
 header h1 svg{width:44px;height:44px;flex:none;margin:-6px 0 -6px -4px}
 header p{margin:0;color:var(--muted)}
@@ -44,12 +60,53 @@ header p{margin:0;color:var(--muted)}
 .verificando,.en_revision,.bloqueado{--c:var(--rev)}.sin_datos{--c:var(--none)}
 .punto{background:var(--c,var(--none))}
 .grupo h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:28px 0 8px}
-.sitio{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.sitio{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:6px}
+.sitio>summary{list-style:none;cursor:pointer;padding:10px 16px;color:var(--fg)}
+.sitio>summary::-webkit-details-marker{display:none}
+.sitio>summary:focus-visible{outline:2px solid var(--deg);outline-offset:-2px;border-radius:10px}
+.sitio[open]>summary{padding-top:14px}
+.cuerpo{padding:0 16px 14px}
+.mini{display:flex;gap:1px;height:16px;width:120px;flex:none;align-self:center}
+.mini i{flex:1;border-radius:1px;background:var(--none)}
+.mini i.b0{background:var(--ok)}.mini i.b1{background:var(--deg)}.mini i.b2{background:var(--down)}
+.sitio[open] .mini{display:none}
+.disp{font-family:var(--mono);font-size:.78rem;color:var(--muted);min-width:4.5em;text-align:right}
+.flecha{color:var(--muted);transition:transform .15s}.sitio[open] .flecha{transform:rotate(90deg)}
+@media (max-width:560px){.mini{display:none}.disp{min-width:0}}
+.herramientas{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 4px}
+.herramientas input{flex:1 1 220px;font:inherit;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.filtros{display:flex;gap:6px;flex-wrap:wrap}
+.filtros button{font:inherit;font-size:.85rem;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.filtros button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.grupo h2 .cuenta{font-weight:500;text-transform:none;letter-spacing:0}
+.problemas h2{color:var(--down)}
+.filtros .facetas{display:inline-flex;gap:6px;align-items:center}
+.filtros .facetas:hover{border-color:var(--muted)}
+.facetas svg{flex:none}
+.facetas .chev{transition:transform .15s;color:var(--muted)}
+.facetas[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.facetas[aria-expanded="true"]{border-color:var(--fg)}
+.facetas .num{background:var(--fg);color:var(--bg);border-radius:99px;font-size:.72rem;padding:0 7px;line-height:1.5}
+.facetas .num:empty{display:none}
+#facetas-cuerpo{font-size:.88rem;margin-top:8px;padding:6px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.faceta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.faceta>b{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);min-width:6.5em}
+.tag{font:inherit;font-size:.8rem;padding:3px 10px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.tag small{color:var(--muted);margin-left:3px}
+.tag[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.tag[aria-pressed="true"] small{color:inherit}
+.activos{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.activos:empty{display:none}
+.activos .limpiar{font:inherit;font-size:.8rem;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer}
+.tags-sitio{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.vacio{color:var(--muted);padding:16px 0}
 .fila{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.sitio .fila{flex-wrap:nowrap;align-items:center}
+.sitio .nombre{flex:1 1 auto}
 .nombre{font-weight:600;flex:1 1 240px;min-width:0}
 .nombre a{color:inherit;text-decoration:none}.nombre a:hover{text-decoration:underline}
 .estado{font-size:.9rem;font-weight:600;color:var(--c)}
 .motivo{font-size:.9rem;color:var(--muted);margin:2px 0 0 22px}
+.sitio>summary .motivo{margin-bottom:0}
 .etq{font-size:.72rem;border:1px solid var(--line);border-radius:99px;padding:0 7px;color:var(--muted);font-weight:500}
 .barras{display:flex;gap:2px;height:28px;margin:12px 0 4px}
 .barras i{flex:1;border-radius:2px;background:var(--none);min-width:2px}
@@ -88,12 +145,30 @@ footer a{color:inherit}
 <body>
 <main>
 <header>
+  <button class="tema" id="tema" type="button" aria-label="Cambiar entre modo claro y oscuro" title="Cambiar entre modo claro y oscuro">
+    <svg class="luna" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    <svg class="sol" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg>
+  </button>
   <h1><svg viewBox="0 0 100 100" aria-hidden="true"><g transform="translate(9 20) scale(.82)"><path d="M20 72 C20 42 31 10 50 10 C69 10 80 42 80 72" fill="none" stroke="currentColor" stroke-width="10.5" stroke-linecap="round"/><g fill="none" stroke="var(--deg)" stroke-linecap="round"><path d="M12 80 q9.5 -6 19 0 t19 0 t19 0 t19 0" stroke-width="5"/><path d="M22 91 q7 -5 14 0 t14 0 t14 0 t14 0" stroke-width="4"/></g></g><g transform="translate(37.5 44)"><rect width="6" height="24" rx="2" fill="var(--ok)"/><rect x="9.5" width="6" height="24" rx="2" fill="var(--ok)"/><rect x="19" y="9" width="6" height="15" rx="2" fill="var(--down)"/></g></svg>Estado de páginas de gobierno</h1>
   <p>¿Funciona el trámite en línea? Revisamos cada 5 minutos páginas de gobierno en México.</p>
   <p class="aviso">No oficial. Proyecto ciudadano de <a href="https://github.com/tocaltepetl">tocaltepetl</a>.</p>
 </header>
 
 <div class="resumen" id="resumen"><span class="punto"></span><span>Cargando…</span></div>
+<div class="herramientas">
+  <input id="buscar" type="search" placeholder="Buscar página, trámite o dependencia" aria-label="Buscar" autocomplete="off">
+  <div class="filtros" role="group" aria-label="Filtrar por estado">
+    <button type="button" data-f="todos" aria-pressed="true">Todas</button>
+    <button type="button" data-f="problemas" aria-pressed="false">Con problemas</button>
+    <button type="button" class="facetas" id="facetas" aria-expanded="false" aria-controls="facetas-cuerpo" aria-label="Filtros por estado, municipio, dependencia o tema">
+  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.5 5.5V13l-3 1.5V8.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+  Filtros <span class="num" id="num-filtros"></span>
+  <svg class="chev" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+</button>
+  </div>
+</div>
+<div id="facetas-cuerpo" hidden></div>
+<div class="activos" id="activos"></div>
 <div id="lista"></div>
 
 <div class="acciones">
@@ -130,7 +205,17 @@ const INTERP = {falla_sitio:"Falla confirmada", cambio_falla:"Cambió el tipo de
 const TIPOS_REPORTE = [["no_carga","No carga o se queda en blanco"],["parte_no_aparece","Un formulario o parte no aparece"],
   ["login","Error al iniciar sesión"],["pago_descarga","Error al pagar o descargar"],["lenta","Muy lenta"],["otro","Otro"]];
 const ESPERA_REPORTE_MS = 3600000;
-let SITIOS = {};
+let SITIOS = {}, LISTA = [], FILTRO = "todos";
+// Sitios desplegados por quien mira; sobreviven a la recarga cada 2 min.
+const ABIERTOS = new Set();
+// Etiquetas: «faceta:valor». Dentro de una faceta se combinan con «o»; entre facetas, con «y».
+const FACETAS = [["estado", "Estado"], ["municipio", "Municipio"], ["dependencia", "Dependencia"], ["tema", "Tema"]];
+const etiquetas = (s) => [s.estado && "estado:" + s.estado, s.municipio && "municipio:" + s.municipio,
+  "dependencia:" + s.dependencia, ...(s.temas || []).map((t) => "tema:" + t)].filter(Boolean);
+const valorEtq = (e) => e.slice(e.indexOf(":") + 1);
+const ACTIVAS = new Set(new URLSearchParams(location.search).getAll("etq"));
+const PROBLEMA = (s) => s.publico !== "operando" && s.publico !== "sin_datos";
+const norm = (t) => String(t ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const DIAS = 90, DIA_MS = 86400000, TZ_MS = 21600000;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -143,11 +228,11 @@ const hace = (ts) => {
 };
 const fecha = (ts) => new Date(ts).toLocaleString("es-MX", {dateStyle: "medium", timeStyle: "short", timeZone: "America/Mexico_City"});
 
-function barras(s) {
+function barras(s, dias = DIAS) {
   const hoy = Math.floor((Date.now() - TZ_MS) / DIA_MS);
   const por = Object.fromEntries(s.barras.map((b) => [b.dia, b]));
   let html = "";
-  for (let d = hoy - DIAS + 1; d <= hoy; d++) {
+  for (let d = hoy - dias + 1; d <= hoy; d++) {
     const b = por[d];
     let cls = "", tip = new Date(d * DIA_MS + TZ_MS).toLocaleDateString("es-MX", {timeZone: "UTC", day: "numeric", month: "short"});
     if (b) {
@@ -167,28 +252,39 @@ function tarjeta(s) {
   const motivo = s.motivo ? `${esc(s.motivo)}${s.desde ? ` · desde ${hace(s.desde)}` : ""}` :
                  s.ts ? `Última revisión ${hace(s.ts)}` : "";
   const disp = s.disponibilidad == null ? "—" : (s.disponibilidad * 100).toFixed(2) + " %";
-  return `<article class="sitio ${s.publico}" data-id="${esc(s.id)}">
-    <div class="fila"><span class="punto"></span>
-      <span class="nombre"><a href="${esc(s.url)}" rel="noopener">${esc(s.nombre)}</a> ${etqs}</span>
-      <span class="estado">${ETIQUETA[s.publico] || s.publico}</span></div>
-    ${motivo ? `<div class="motivo">${motivo}</div>` : ""}
+  const sano = s.publico === "operando";
+  const abierto = ABIERTOS.has(s.id);
+  return `<details class="sitio ${s.publico}" id="sitio-${esc(s.id)}" data-id="${esc(s.id)}"${abierto ? " open" : ""}>
+    <summary><div class="fila"><span class="punto"></span>
+      <span class="nombre">${esc(s.nombre)} ${etqs}</span>
+      <span class="mini" aria-hidden="true">${barras(s, 30)}</span>
+      ${sano ? `<span class="disp" title="Disponibilidad, últimos ${DIAS} días">${disp}</span>` : `<span class="estado">${ETIQUETA[s.publico] || s.publico}</span>`}
+      <span class="flecha" aria-hidden="true">›</span></div>
+    ${!sano && motivo ? `<div class="motivo">${motivo}</div>` : ""}
     ${s.reportes?.recientes ? `<div class="reportes">${s.reportes.recientes} personas reportaron fallas en las últimas 2 h</div>` : ""}
+    </summary>
+    <div class="cuerpo">
+    ${sano && motivo ? `<div class="motivo" style="margin-left:0">${motivo} · <a href="${esc(s.url)}" rel="noopener">Abrir la página</a></div>` : `<div class="motivo" style="margin-left:0"><a href="${esc(s.url)}" rel="noopener">Abrir la página</a></div>`}
     <div class="barras" aria-label="Últimos ${DIAS} días">${barras(s)}</div>
     <div class="pie"><span>hace ${DIAS} días</span><span>${disp} disponible</span><span>hoy</span></div>
-    <div class="otros"><details><summary>Historial</summary><ul class="hist">Cargando…</ul></details>
+    <div class="otros"><details class="hist-det"><summary>Historial</summary><ul class="hist">Cargando…</ul></details>
       <button class="rep-btn" type="button">¿No te funciona?</button></div>
+    <div class="tags-sitio">${etiquetas(s).map((e) => `<button type="button" class="tag" data-etq="${esc(e)}" aria-pressed="${ACTIVAS.has(e)}">${esc(valorEtq(e))}</button>`).join("")}</div>
     ${contacto(s)}
     <div class="rep-form" hidden></div>
-  </article>`;
+    </div>
+  </details>`;
 }
 
 function resumen(sitios) {
   const caidos = sitios.filter((s) => s.publico === "caido").length;
   const deg = sitios.filter((s) => s.publico === "degradado").length;
+  const sinDatos = sitios.filter((s) => s.publico === "sin_datos").length;
   const el = $("#resumen");
   const [cls, txt] = caidos ? ["caido", `${caidos} ${caidos === 1 ? "página caída" : "páginas caídas"}${deg ? ` y ${deg} con fallas parciales` : ""}`] :
                      deg ? ["degradado", `${deg} ${deg === 1 ? "página con fallas parciales" : "páginas con fallas parciales"}`] :
-                     ["operando", "Todas las páginas revisadas funcionan"];
+                     sinDatos === sitios.length ? ["sin_datos", "Aún no hay revisiones registradas"] :
+                     ["operando", sinDatos ? `Todas las páginas revisadas funcionan (${sinDatos} aún sin datos)` : "Todas las páginas revisadas funcionan"];
   el.className = "resumen " + cls;
   el.innerHTML = `<span class="punto"></span><span>${txt}</span>`;
 }
@@ -254,19 +350,101 @@ async function cargar() {
     const d = await (await fetch("/api/estado")).json();
     resumen(d.sitios);
     SITIOS = Object.fromEntries(d.sitios.map((s) => [s.id, s]));
-    const grupos = {};
-    for (const s of d.sitios) (grupos[s.dependencia] ||= []).push(s);
-    $("#lista").innerHTML = Object.entries(grupos).map(([g, ss]) =>
-      `<section class="grupo"><h2>${esc(g)}</h2>${ss.map(tarjeta).join("")}</section>`).join("");
-    document.querySelectorAll("details").forEach((det) => det.addEventListener("toggle", () => det.open && historial(det)));
-    document.querySelectorAll(".rep-btn").forEach((b) => b.addEventListener("click", () => abrirReporte(b.closest(".sitio"))));
+    LISTA = d.sitios;
+    if (!cargar.listo) {
+      // Los sitios con problemas empiezan desplegados; también el del enlace #sitio-ID.
+      LISTA.filter(PROBLEMA).forEach((s) => ABIERTOS.add(s.id));
+      const h = decodeURIComponent(location.hash.replace(/^#sitio-/, ""));
+      if (SITIOS[h]) ABIERTOS.add(h);
+    }
+    pintar();
+    if (!cargar.listo && SITIOS[location.hash.replace(/^#sitio-/, "")]) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+    cargar.listo = true;
   } catch {
     $("#resumen").innerHTML = `<span class="punto"></span><span class="error">No se pudo cargar el estado. Intenta de nuevo en un momento.</span>`;
   }
 }
+function pintar() {
+  const q = norm($("#buscar").value.trim());
+  const porFaceta = {};
+  for (const e of ACTIVAS) (porFaceta[e.split(":")[0]] ||= []).push(e);
+  const pasa = (s) => { const mias = etiquetas(s); return Object.values(porFaceta).every((es) => es.some((e) => mias.includes(e))); };
+  const ver = LISTA.filter((s) => (FILTRO === "todos" || PROBLEMA(s)) && pasa(s) &&
+    (!q || norm(`${s.nombre} ${s.url} ${etiquetas(s).map(valorEtq).join(" ")}`).includes(q)));
+  pintarFacetas();
+  const problemas = ver.filter(PROBLEMA), sanos = ver.filter((s) => !PROBLEMA(s));
+  const grupos = {};
+  for (const s of sanos) (grupos[s.dependencia] ||= []).push(s);
+  const seccion = (titulo, ss, cls = "") => `<section class="grupo ${cls}"><h2>${esc(titulo)} <span class="cuenta">· ${ss.length}</span></h2>${ss.map(tarjeta).join("")}</section>`;
+  $("#lista").innerHTML = (problemas.length ? seccion("Con problemas", problemas, "problemas") : "") +
+    Object.entries(grupos).sort(([a], [b]) => a.localeCompare(b, "es")).map(([g, ss]) => seccion(g, ss)).join("") ||
+    `<p class="vacio">${q ? "Ninguna página coincide con la búsqueda." : "No hay páginas con problemas en este momento."}</p>`;
+  document.querySelectorAll(".sitio").forEach((det) => det.addEventListener("toggle", () => {
+    det.open ? ABIERTOS.add(det.dataset.id) : ABIERTOS.delete(det.dataset.id);
+  }));
+  document.querySelectorAll(".hist-det").forEach((det) => det.addEventListener("toggle", () => det.open && historial(det)));
+  document.querySelectorAll(".rep-btn").forEach((b) => b.addEventListener("click", () => abrirReporte(b.closest(".sitio"))));
+}
+
+function pintarFacetas() {
+  const cuenta = {};
+  for (const s of LISTA) for (const e of etiquetas(s)) cuenta[e] = (cuenta[e] || 0) + 1;
+  const boton = (e) => `<button type="button" class="tag" data-etq="${esc(e)}" aria-pressed="${ACTIVAS.has(e)}">${esc(valorEtq(e))}<small>${cuenta[e] || 0}</small></button>`;
+  $("#facetas-cuerpo").innerHTML = FACETAS.map(([f, nombre]) => {
+    const es = Object.keys(cuenta).filter((e) => e.startsWith(f + ":")).sort((a, b) => valorEtq(a).localeCompare(valorEtq(b), "es"));
+    return es.length ? `<div class="faceta"><b>${nombre}</b>${es.map(boton).join("")}</div>` : "";
+  }).join("");
+  $("#num-filtros").textContent = ACTIVAS.size || "";
+  $("#activos").innerHTML = ACTIVAS.size ? [...ACTIVAS].map((e) =>
+    `<button type="button" class="tag" data-etq="${esc(e)}" aria-pressed="true" title="Quitar filtro">${esc(valorEtq(e))} ✕</button>`).join("") +
+    `<button type="button" class="limpiar">Quitar filtros</button>` : "";
+}
+
+function alternarEtq(e) {
+  ACTIVAS.has(e) ? ACTIVAS.delete(e) : ACTIVAS.add(e);
+  guardarEtqs();
+  pintar();
+}
+
+// Los filtros viven en la URL (?etq=tema:agua) para poder compartir la vista.
+function guardarEtqs() {
+  const u = new URL(location.href);
+  u.searchParams.delete("etq");
+  for (const a of ACTIVAS) u.searchParams.append("etq", a);
+  history.replaceState(null, "", u);
+}
+
+// Un solo manejador para las etiquetas de los paneles y de cada sitio.
+document.addEventListener("click", (ev) => {
+  const t = ev.target.closest(".tag[data-etq]");
+  if (t) return alternarEtq(t.dataset.etq);
+  if (ev.target.closest(".limpiar")) { ACTIVAS.clear(); guardarEtqs(); pintar(); }
+});
+
+function panelFiltros(abrir) {
+  $("#facetas-cuerpo").hidden = !abrir;
+  $("#facetas").setAttribute("aria-expanded", String(abrir));
+}
+$("#facetas").addEventListener("click", () => panelFiltros($("#facetas-cuerpo").hidden));
+if (ACTIVAS.size) panelFiltros(true);
+// Tema: sigue al sistema hasta que la persona elige; la elección se recuerda en este navegador.
+$("#tema").addEventListener("click", () => {
+  const actual = document.documentElement.dataset.theme ||
+    (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const nuevo = actual === "dark" ? "light" : "dark";
+  aplicarTema(nuevo);
+  guardar("estado-gob:tema", nuevo);
+});
+$("#buscar").addEventListener("input", pintar);
+document.querySelectorAll(".filtros button[data-f]").forEach((b) => b.addEventListener("click", () => {
+  FILTRO = b.dataset.f;
+  document.querySelectorAll(".filtros button[data-f]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  pintar();
+}));
+
 cargar();
 setInterval(() => {
-  if (!document.hidden && !document.querySelector("details[open]") && !document.querySelector(".rep-form:not([hidden])")) cargar();
+  if (!document.hidden && !document.querySelector(".hist-det[open]") && document.activeElement !== $("#buscar") && !document.querySelector(".rep-form:not([hidden])")) cargar();
 }, 120000);
 </script>
 </body>
