@@ -153,3 +153,23 @@ Cloudflare ya es conocido: abriría un issue por sitio que no dice nada nuevo.
   rediseño sí avisan.
 - En la página, en lugar de «posible geobloqueo», la tarjeta dice «revisado
   desde México».
+
+## Solicitudes sin cuenta de GitHub (2026-11-13)
+- Pedir una cuenta de GitHub para proponer una página o describir una falla
+  deja fuera a casi toda la ciudadanía. Los formularios de la página mandan a
+  `POST /api/solicitud`, y el Worker abre el issue con `GITHUB_TOKEN`, con los
+  mismos campos que las plantillas. Las plantillas siguen para quien tenga cuenta.
+- Lo que se envía se publica, así que el antispam va antes de GitHub:
+  Cloudflare Turnstile (secreto `TURNSTILE_SECRET`; la clave de sitio, que es
+  pública, está en `public/index.html`), un límite de 2 por minuto por IP
+  (`LIMITE_SOLICITUD`, la IP no se guarda), un campo trampa y validación con
+  límites de tamaño.
+- El texto libre va dentro de bloques de código: así GitHub no convierte
+  @menciones, #referencias ni enlaces, y el bot no sirve para avisar a terceros
+  ni para publicar enlaces de spam. En los títulos se quitan `@` y `#`.
+- No se pide correo ni se guarda nada en D1: el seguimiento es en el issue, y
+  la página da el enlace. Pedir correo obligaría a guardar datos personales.
+- Se descartó moderar en D1 antes de publicar, porque da más trabajo de
+  mantenimiento. Si el spam rebasa a Turnstile, ese es el siguiente paso.
+- Solo el dominio de producción abre issues: las vistas previas comparten los
+  secretos.

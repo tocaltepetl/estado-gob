@@ -50,9 +50,13 @@ TOKEN_REVISOR=local node scripts/revisar.mjs --enviar http://localhost:8791
 - `GET /api/historial?sitio=ID`: últimas revisiones y transiciones.
 - `POST /api/reporte` `{sitio, k}`: reporte anónimo desde la página. Los
   conteos aparecen en `/api/estado` (campo `reportes`) a partir de 3.
+- `POST /api/solicitud`: «Solicitar una página» y «Reportar con detalle» desde
+  la página, sin cuenta de GitHub. Verifica Cloudflare Turnstile y abre el
+  issue a nombre del bot (etiqueta `via-web`). Solo publica en producción.
 
 ## Agregar una página
-Abre un issue con la plantilla **Nuevo sitio**, o un PR que edite
+Usa «Solicitar una página» en el sitio (no necesitas cuenta), abre un issue
+con la plantilla **Nuevo sitio**, o manda un PR que edite
 `config/sitios.json`. Si la página necesita iniciar sesión, se revisa solo la
 parte pública y se marca como «monitoreo parcial».
 

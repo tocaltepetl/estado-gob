@@ -25,13 +25,15 @@
 	],
 	"ratelimits": [
 		// Contra spam en POST /api/reporte: 10 por minuto por IP (la IP no se guarda).
-		{"name": "LIMITE", "namespace_id": "1002", "simple": {"limit": 10, "period": 60}}
+		{"name": "LIMITE", "namespace_id": "1002", "simple": {"limit": 10, "period": 60}},
+		// POST /api/solicitud abre issues públicos: 2 por minuto por IP, además de Turnstile.
+		{"name": "LIMITE_SOLICITUD", "namespace_id": "1003", "simple": {"limit": 2, "period": 60}}
 	],
 	"routes": [
 		{"pattern": "estado.tocaltepetl.org", "custom_domain": true}
 	],
-	// Secretos (no van aquí): TOKEN_REVISOR (revisor en México) y GITHUB_TOKEN
-	// (issues automáticos). En local van en .dev.vars.
+	// Secretos (no van aquí): TOKEN_REVISOR (revisor en México), GITHUB_TOKEN
+	// (issues automáticos y solicitudes) y TURNSTILE_SECRET (antispam de /api/solicitud). En local van en .dev.vars.
 	"workers_dev": false,
 	"preview_urls": true
 }

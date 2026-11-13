@@ -48,6 +48,22 @@ summary{cursor:pointer;color:var(--muted)}
 .acciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:32px}
 .acciones a{display:block;padding:14px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:inherit;text-decoration:none}
 .acciones a b{display:block}.acciones a span{font-size:.85rem;color:var(--muted)}
+.acciones button{display:block;width:100%;text-align:left;font:inherit;cursor:pointer;padding:14px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:inherit}
+.acciones button b{display:block}.acciones button span{font-size:.85rem;color:var(--muted)}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);width:min(560px,calc(100vw - 32px));box-sizing:border-box;padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{margin:0 0 12px;font-size:1.15rem}
+dialog label{display:block;margin:12px 0 0;font-weight:600;font-size:.92rem}
+dialog label small{display:block;font-weight:400;color:var(--muted)}
+dialog input:not([type=checkbox]),dialog select,dialog textarea{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:8px 10px;font:inherit;font-weight:400;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+dialog textarea{min-height:80px;resize:vertical}
+dialog .check{font-weight:400;display:flex;gap:8px;align-items:flex-start}
+dialog .trampa{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+dialog .botones{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+dialog .botones button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+dialog .botones #sol-enviar{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+dialog button:disabled{opacity:.6;cursor:default}
+#sol-turnstile{margin-top:12px;min-height:65px}
 .leyenda{font-size:.85rem;color:var(--muted);margin-top:32px}
 .leyenda dt{font-weight:600;color:var(--fg);display:flex;gap:8px;align-items:center;margin-top:8px}
 .leyenda dd{margin:0 0 0 20px}
@@ -61,6 +77,7 @@ footer a{color:inherit}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:99px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
 .chips button:hover{border-color:var(--down)}
+.rep-detalle{font:inherit;background:none;border:0;padding:0;color:inherit;text-decoration:underline;cursor:pointer}
 .rep-form small{display:block;margin-top:8px;color:var(--muted)}
 .otros{display:flex;gap:12px;align-items:center;margin-top:8px}
 .contacto{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--bg);font-size:.88rem}
@@ -83,11 +100,28 @@ footer a{color:inherit}
 <div id="lista"></div>
 
 <div class="acciones">
-  <a href="https://github.com/tocaltepetl/estado-gob/issues/new?template=nuevo-sitio.yml">
-    <b>Solicitar una página</b><span>¿Falta un trámite o portal? Propónlo (requiere cuenta de GitHub).</span></a>
-  <a href="https://github.com/tocaltepetl/estado-gob/issues/new?template=reportar-falla.yml">
-    <b>Reportar con detalle</b><span>Para reportar rápido usa «¿No te funciona?» en cada página. Aquí puedes describir el problema (requiere cuenta de GitHub).</span></a>
+  <button type="button" data-form="nuevo-sitio">
+    <b>Solicitar una página</b><span>¿Falta un trámite o portal? Propónlo. No necesitas cuenta.</span></button>
+  <button type="button" data-form="reporte">
+    <b>Reportar con detalle</b><span>Para reportar rápido usa «¿No te funciona?» en cada página. Aquí puedes describir el problema.</span></button>
 </div>
+
+<dialog id="solicitud" aria-labelledby="sol-titulo">
+<form method="dialog" id="sol-form" novalidate>
+  <h2 id="sol-titulo"></h2>
+  <div id="sol-campos"></div>
+  <label class="trampa" aria-hidden="true">No llenar <input name="web" tabindex="-1" autocomplete="off"></label>
+  <label class="check"><input type="checkbox" name="datos" required> No incluí datos personales, CURP, RFC, folios ni contraseñas.</label>
+  <p class="aviso">Se publica como issue en GitHub, a la vista de todos. No guardamos tu IP ni pedimos correo: para ver la respuesta, guarda el enlace que te daremos.</p>
+  <div id="sol-turnstile"></div>
+  <p id="sol-msg" role="status"></p>
+  <div class="botones">
+    <button type="button" value="cancelar" id="sol-cerrar">Cerrar</button>
+    <button type="submit" id="sol-enviar">Enviar</button>
+  </div>
+  <p class="aviso">¿Tienes cuenta de GitHub? <a id="sol-gh" rel="noopener">Abre el issue directamente</a>.</p>
+</form>
+</dialog>
 
 <dl class="leyenda">
   <dt><span class="punto operando"></span>Operando</dt><dd>Respondió bien en la última revisión.</dd>
@@ -102,11 +136,12 @@ footer a{color:inherit}
   Los datos están disponibles en <a href="/api/estado">/api/estado</a>. Código en
   <a href="https://github.com/tocaltepetl/estado-gob">GitHub</a> (MIT).
   La revisión automática se identifica como <code>estado-gob</code> y hace una petición cada 5 minutos por página.
-  Los reportes son anónimos: solo se guarda la página, el tipo de falla y la hora; se muestran a partir de 3.
+  Los reportes son anónimos: solo se guarda la página, el tipo de falla y la hora; se muestran a partir de 3. Las solicitudes y reportes con detalle se publican como issues en GitHub, protegidos con Cloudflare Turnstile.
   Versión <a class="ver" href="https://github.com/tocaltepetl/estado-gob/releases" rel="noopener">dev</a>.
 </footer>
 </main>
 
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script>
 const ETIQUETA = {operando:"Operando", degradado:"Degradado", caido:"Caído", verificando:"Verificando",
   en_revision:"En revisión", bloqueado:"Revisión bloqueada", sin_datos:"Sin datos"};
@@ -219,10 +254,11 @@ function abrirReporte(art) {
   if (Date.now() - previo < ESPERA_REPORTE_MS) { f.innerHTML = "<p>Gracias, ya registramos tu reporte de esta página.</p>"; return; }
   f.innerHTML = `<p>¿Qué pasa? Tu reporte es anónimo.</p><div class="chips">${TIPOS_REPORTE.map(([, t], k) =>
     `<button type="button" data-k="${k}">${t}</button>`).join("")}</div>
-    <small>Solo guardamos la página, el tipo de falla y la hora. Para dar detalles, usa «Reportar con detalle» abajo.</small>
+    <small>Solo guardamos la página, el tipo de falla y la hora. <button type="button" class="rep-detalle">Dar detalles</button></small>
     ${art.querySelector(".contacto") ? "" : contacto(SITIOS[id], true)}`;
-  f.querySelectorAll("button").forEach((b) => b.addEventListener("click", async () => {
-    f.querySelectorAll("button").forEach((x) => x.disabled = true);
+  f.querySelector(".rep-detalle").addEventListener("click", () => abrirSolicitud("reporte", id));
+  f.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", async () => {
+    f.querySelectorAll("button[data-k]").forEach((x) => x.disabled = true);
     try {
       const r = await fetch("/api/reporte", {method: "POST", headers: {"content-type": "application/json"},
         body: JSON.stringify({sitio: id, k: Number(b.dataset.k)})});
@@ -234,6 +270,92 @@ function abrirReporte(art) {
     }
   }));
 }
+
+// Solicitudes sin cuenta de GitHub (POST /api/solicitud → issue del bot).
+// Clave de sitio de Turnstile (pública). En local se usa la de pruebas, que siempre pasa.
+const TURNSTILE_SITEKEY = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+  ? "1x00000000000000000000AA" : "PENDIENTE_CLAVE_DE_SITIO";
+const GH_NUEVO = "https://github.com/tocaltepetl/estado-gob/issues/new?template=";
+const LOGIN = ["No", "Sí, para la parte importante", "No sé"];
+const ERRORES = {url: "Revisa la dirección: debe empezar con https://", dependencia: "Falta la dependencia.",
+  para_que: "Cuéntanos para qué se usa.", cuando: "Falta cuándo pasó.", sitio: "Elige la página.",
+  datos: "Confirma que no incluiste datos personales.", verificacion: "No pudimos verificar que eres una persona. Intenta de nuevo.",
+  demasiadas: "Enviaste varias solicitudes seguidas. Espera un minuto."};
+let widget = null;
+
+const campo = (nombre, etiqueta, control, ayuda = "") =>
+  `<label>${etiqueta}${ayuda ? `<small>${ayuda}</small>` : ""}${control.replace("<NAME>", `name="${nombre}"`)}</label>`;
+
+function formSolicitud(tipo) {
+  if (tipo === "nuevo-sitio") return [
+    campo("url", "Dirección (URL)", `<input <NAME> type="url" required maxlength="500" placeholder="https://...gob.mx/...">`),
+    campo("dependencia", "Dependencia u orden de gobierno", `<input <NAME> required maxlength="120" placeholder="p. ej. SIAPA, Ayuntamiento de Zapopan">`),
+    campo("para_que", "¿Para qué se usa?", `<textarea <NAME> required maxlength="1000"></textarea>`, "El trámite o servicio que la gente hace ahí."),
+    campo("sana", "¿Cómo se ve cuando funciona? (opcional)", `<textarea <NAME> maxlength="500"></textarea>`, "Un texto que siempre aparece cuando la página está bien."),
+    campo("login", "¿Requiere iniciar sesión?", `<select <NAME>>${LOGIN.map((o) => `<option>${o}</option>`).join("")}</select>`),
+  ].join("");
+  const opciones = Object.values(SITIOS).map((s) => `<option value="${esc(s.id)}">${esc(s.nombre)}</option>`).join("");
+  return [
+    campo("sitio", "Página", `<select <NAME> required><option value="">Elige…</option>${opciones}<option value="otra">Otra</option></select>`),
+    `<div id="sol-otra" hidden>${campo("url", "Dirección de la otra página", `<input <NAME> type="url" maxlength="500" placeholder="https://...">`)}</div>`,
+    campo("k", "¿Qué pasó?", `<select <NAME>>${TIPOS_REPORTE.map(([, t], k) => `<option value="${k}">${t}</option>`).join("")}</select>`),
+    campo("cuando", "¿Cuándo? (fecha y hora aproximada)", `<input <NAME> required maxlength="120">`),
+    campo("detalle", "Detalle (opcional)", `<textarea <NAME> maxlength="2000"></textarea>`, "Qué intentabas hacer y qué viste. Sin datos personales."),
+  ].join("");
+}
+
+function abrirSolicitud(tipo, sitio) {
+  const dlg = $("#solicitud"), f = $("#sol-form");
+  f.reset();
+  f.dataset.tipo = tipo;
+  $("#sol-titulo").textContent = tipo === "nuevo-sitio" ? "Solicitar una página" : "Reportar con detalle";
+  $("#sol-campos").innerHTML = formSolicitud(tipo);
+  $("#sol-gh").href = GH_NUEVO + (tipo === "nuevo-sitio" ? "nuevo-sitio.yml" : "reportar-falla.yml");
+  $("#sol-msg").textContent = "";
+  $("#sol-enviar").hidden = false; $("#sol-enviar").disabled = false;
+  const sel = f.elements.sitio;
+  if (sel) {
+    sel.addEventListener("change", () => { $("#sol-otra").hidden = sel.value !== "otra"; });
+    if (sitio) sel.value = sitio;
+  }
+  dlg.showModal();
+  if (window.turnstile) {
+    if (widget !== null) turnstile.reset(widget);
+    else widget = turnstile.render("#sol-turnstile", {sitekey: TURNSTILE_SITEKEY, language: "es"});
+  }
+}
+
+$("#sol-cerrar").addEventListener("click", () => $("#solicitud").close());
+document.querySelectorAll(".acciones button").forEach((b) => b.addEventListener("click", () => abrirSolicitud(b.dataset.form)));
+
+$("#sol-form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const f = ev.target, msg = $("#sol-msg"), enviar = $("#sol-enviar");
+  const datos = Object.fromEntries(new FormData(f));
+  const body = {...datos, tipo: f.dataset.tipo, datos: f.elements.datos.checked,
+    turnstile: window.turnstile && widget !== null ? turnstile.getResponse(widget) : ""};
+  if (body.k !== undefined) body.k = Number(body.k);
+  enviar.disabled = true;
+  msg.className = ""; msg.textContent = "Enviando…";
+  try {
+    const r = await fetch("/api/solicitud", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(body)});
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      msg.className = "error";
+      msg.textContent = ERRORES[d.error] || "No se pudo enviar. Revisa los campos e intenta de nuevo.";
+      enviar.disabled = false;
+      if (window.turnstile && widget !== null) turnstile.reset(widget);
+      return;
+    }
+    enviar.hidden = true;
+    msg.innerHTML = d.url
+      ? `Gracias. Tu solicitud es el <a href="${esc(d.url)}" rel="noopener">issue #${esc(d.issue)}</a>: guarda el enlace para ver la respuesta.`
+      : "Gracias, recibimos tu solicitud (entorno de pruebas: no se publicó).";
+  } catch {
+    msg.className = "error"; msg.textContent = "No se pudo enviar. Intenta de nuevo en un momento.";
+    enviar.disabled = false;
+  }
+});
 
 async function cargar() {
   try {
@@ -252,7 +374,7 @@ async function cargar() {
 }
 cargar();
 setInterval(() => {
-  if (!document.hidden && !document.querySelector("details[open]") && !document.querySelector(".rep-form:not([hidden])")) cargar();
+  if (!document.hidden && !document.querySelector("details[open]") && !document.querySelector(".rep-form:not([hidden])") && !$("#solicitud").open) cargar();
 }, 120000);
 </script>
 </body>
