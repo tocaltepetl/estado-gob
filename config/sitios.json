@@ -46,6 +46,30 @@
       ]
     },
     {
+      "id": "tequierolimpia-gdl",
+      "nombre": "Te Quiero Limpia: mapa de limpia de Guadalajara",
+      "dependencia": "Ayuntamiento de Guadalajara",
+      "estado": "Jalisco", "municipio": "Guadalajara", "temas": ["limpia", "mapas"],
+      "url": "https://tequierolimpia.guadalajara.gob.mx/",
+      "tipo": "http",
+      "espera": {
+        "status": 200,
+        "contiene": "Mapa Limpia Guadalajara",
+        "recursos": [
+          {
+            "nombre": "Mapa base (Carto)",
+            "url": "https://a.basemaps.cartocdn.com/rastertiles/voyager/12/980/1834.png",
+            "sin_encabezado": {"etag": "^(W/)?.?wm-"},
+            "motivo": "el proveedor del mapa base pide API key y entrega una marca de agua"
+          }
+        ]
+      },
+      "contacto": [
+        {"tipo": "telefono", "valor": "33 3837 4400", "etiqueta": "Conmutador del Ayuntamiento"},
+        {"tipo": "correo", "valor": "contacto@guadalajara.gob.mx"}
+      ]
+    },
+    {
       "id": "siapa-portal",
       "nombre": "Portal de SIAPA",
       "dependencia": "SIAPA",

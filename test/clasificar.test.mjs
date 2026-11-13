@@ -60,3 +60,14 @@ test("Códigos 52x de Cloudflare (origen cf): mismo diagnóstico que desde Méxi
   assert.equal(clasificarRespuesta({status: 522, cuerpo: ""}, {}, F).tipo, "tcp_timeout");
   assert.equal(clasificarRespuesta({status: 503, cuerpo: ""}, {}, F).tipo, "http_5xx");
 });
+
+test("Te Quiero Limpia: tesela de Carto con marca de agua es recurso_roto", async () => {
+  const {clasificarRecurso} = await import("../src/clasificar.js");
+  const sitio = (await import("../config/sitios.json", {with: {type: "json"}})).default.sitios.find((s) => s.id === "tequierolimpia-gdl");
+  const recurso = sitio.espera.recursos[0];
+  const roto = clasificarRecurso(recurso, {status: 200, encabezados: {etag: '"wm-da89c20e77c1-light"'}});
+  assert.equal(roto.tipo, "recurso_roto");
+  assert.equal(roto.atribucion, "sitio");
+  assert.equal(clasificarRecurso(recurso, {status: 200, encabezados: {etag: '"5f2a9c"'}}).tipo, "ok");
+  assert.equal(clasificarRecurso(recurso, {status: 503}).tipo, "recurso_roto");
+});
