@@ -22,7 +22,8 @@ trámites en línea de gobierno en México. Revisa cada página cada 5 minutos.
 - **¿No te funciona?**: reporte anónimo en un toque (página y tipo de falla,
   nada más). Se muestra cuando lo reportan al menos 3 personas.
 - Conteo de visitas con Cloudflare Web Analytics (sin cookies ni datos
-  personales), solo para saber cuánta gente usa la página.
+  personales), solo para saber cuánta gente usa la página. Ver la
+  [política de privacidad común](https://github.com/tocaltepetl/.github/blob/main/docs/privacidad.md).
 
 ## Cómo funciona
 - `src/clasificar.js`: convierte lo que pasó (error de red o respuesta HTTP)
@@ -92,6 +93,11 @@ cuando un sitio está caído o degradado:
 lada de país), `telefono`, `correo`, `web` u `otro` (URL https). Marca
 `especifico: true` solo si el canal atiende fallas de la página; si todos son
 generales, la página lo aclara. `npm test` valida el catálogo.
+
+## Contribuir
+Issues y PRs bienvenidos. Las reglas comunes a los proyectos de tocaltepetl
+(privacidad, proceso, títulos de PR, idioma y código de conducta) están en
+[tocaltepetl/.github](https://github.com/tocaltepetl/.github/blob/main/CONTRIBUTING.md).
 
 ## Licencia
 [MIT](LICENSE).
