@@ -1,12 +1,13 @@
-# Vuelve a publicar una versión ya liberada (tag vX.Y.Z), p. ej. para regresar
-# a una anterior: Actions → Desplegar → Run workflow. Las versiones nuevas las
+# Publica a mano: Actions → Desplegar → Run workflow. Acepta un tag (vX.Y.Z),
+# p. ej. para regresar a una versión anterior, o `main`, para publicar cambios
+# que no generan versión (PRs `docs`, `chore`…). Las versiones nuevas las
 # publica release.yml. Siempre espera aprobación en «production».
 name: Desplegar
 on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Versión a publicar (tag, p. ej. v0.2.0)"
+        description: "Tag a publicar (p. ej. v0.2.0) o main"
         type: string
         required: true
 permissions: {}
@@ -23,23 +24,28 @@ jobs:
       contents: read
     steps:
       - name: Validar versión
+        id: ref
         env:
           REF: ${{ inputs.ref }}
         run: |
-          [[ "$REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::«$REF» no es un tag de versión (vX.Y.Z)."; exit 1; }
+          if [[ "$REF" == main ]]; then echo "git=refs/heads/main" >> "$GITHUB_OUTPUT"
+          elif [[ "$REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "git=refs/tags/$REF" >> "$GITHUB_OUTPUT"
+          else echo "::error::«$REF» no es un tag de versión (vX.Y.Z) ni main."; exit 1; fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: refs/tags/${{ inputs.ref }}
+          ref: ${{ steps.ref.outputs.git }}
+          fetch-depth: 0
           persist-credentials: false
       - name: Poner la versión en la página
-        env:
-          VERSION: ${{ inputs.ref }}
         run: |
+          # Un tag queda tal cual; main se ve como v0.9.0-2-gabc1234 (último tag,
+          # commits desde él y commit), para distinguirlo de una versión liberada.
+          VERSION=$(git describe --tags --abbrev=7)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           # Los tags anteriores a v0.2.0 ya traen la versión escrita; ahí no cambia nada.
           sed -i -E "s|(class=\"ver\"[^>]*>)[^<]*(</a>)|\1$VERSION\2|" public/index.html
       - name: Desplegar a producción
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          REF: ${{ inputs.ref }}
-        run: npx -y wrangler@4.160.1 deploy --message "$REF"
+        run: npx -y wrangler@4.160.1 deploy --message "$VERSION"
