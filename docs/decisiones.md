@@ -212,3 +212,15 @@ dónde vengas:
   too small»). Los navegadores y Workers no ofrecen DHE y negocian ECDHE; el
   revisor en Node quita DHE igual (`scripts/revisar.mjs`).
 - `contiene` busca «contraseña» para que la página en blanco cuente como falla.
+
+---
+
+## Conteo de visitas (2026-11-13)
+
+Mismo criterio que `camiones-basura-gdl`: Cloudflare Web Analytics, sin
+cookies ni datos personales, solo para saber cuánta gente usa la página.
+- El Worker sirve `index.html` como asset y no recibe la inyección automática
+  del beacon, así que va a mano al final de `public/index.html` (token del
+  sitio tocaltepetl.org, compartido con camiones; se separa por host).
+- Se avisa en el pie de la página y en el README.
+- Para quitarlo basta borrar esa línea de `<script>`.

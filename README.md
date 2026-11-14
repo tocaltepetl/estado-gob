@@ -21,6 +21,8 @@ trámites en línea de gobierno en México. Revisa cada página cada 5 minutos.
 - Barras de los últimos 90 días, disponibilidad y el historial de cambios.
 - **¿No te funciona?**: reporte anónimo en un toque (página y tipo de falla,
   nada más). Se muestra cuando lo reportan al menos 3 personas.
+- Conteo de visitas con Cloudflare Web Analytics (sin cookies ni datos
+  personales), solo para saber cuánta gente usa la página.
 
 ## Cómo funciona
 - `src/clasificar.js`: convierte lo que pasó (error de red o respuesta HTTP)
